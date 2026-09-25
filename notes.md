@@ -26,5 +26,5 @@ D:\\AashimaYasmeen\\Projects\\Agri-Connect\\AgriConnect\\ai-service>python app.p
 
 Farmer
 
-crop disease detection 
+crop disease detection
 
