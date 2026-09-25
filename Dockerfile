@@ -1,10 +1,14 @@
-FROM eclipse-temurin:24-jdk
+FROM maven:3.9.11-eclipse-temurin-24
 
 WORKDIR /app
 
-COPY . .
+COPY pom.xml .
 
-RUN chmod +x mvnw && ./mvnw clean package -DskipTests
+RUN mvn dependency:go-offline
+
+COPY src ./src
+
+RUN mvn clean package -DskipTests
 
 EXPOSE 8081
 
