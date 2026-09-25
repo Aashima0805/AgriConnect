@@ -1,6 +1,6 @@
 // Farmer module shared API helper and UI utilities
 const FarmerAPI = {
-  baseUrl: 'http://localhost:8081',
+  baseUrl: '',
 
   // Get logged‑in farmer id from session
   getFarmerId() {
