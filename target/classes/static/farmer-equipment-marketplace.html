@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+```
+<title>Rent Equipment | AgriConnect</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+
+<style>
+    body {
+        background: #f7faf7;
+    }
+
+    .marketplace-wrapper {
+        max-width: 1200px;
+        margin: 35px auto;
+        padding: 0 20px;
+    }
+
+    .page-header {
+        margin-bottom: 25px;
+    }
+
+    .page-header h1 {
+        font-weight: 700;
+    }
+
+    .equipment-card {
+        background: #ffffff;
+        border: 1px solid #e4ece5;
+        border-radius: 18px;
+        overflow: hidden;
+        height: 100%;
+        box-shadow: 0 6px 20px rgba(30, 80, 40, 0.06);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .equipment-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 10px 28px rgba(30, 80, 40, 0.10);
+    }
+
+    .equipment-image {
+        height: 170px;
+        background: #eaf5eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 65px;
+        color: #2e7d32;
+    }
+
+    .equipment-body {
+        padding: 20px;
+    }
+
+    .equipment-price {
+        color: #2e7d32;
+        font-size: 21px;
+        font-weight: 700;
+    }
+
+    .owner-box {
+        background: #f5f8f5;
+        border-radius: 10px;
+        padding: 10px 12px;
+        margin: 14px 0;
+    }
+
+    .loading-box {
+        text-align: center;
+        padding: 60px;
+    }
+
+    .empty-box {
+        text-align: center;
+        padding: 70px 20px;
+        background: #ffffff;
+        border-radius: 18px;
+        border: 1px solid #e4ece5;
+    }
+</style>
+```
+
+</head>
+
+<body>
+
+<div id="navbar-container"></div>
+
+<div class="marketplace-wrapper">
+
+```
+<div class="page-header">
+    <h1>
+        <i class="bi bi-tractor text-success me-2"></i>
+        Rent Equipment
+    </h1>
+    <a href="farmer-my-rentals.html" class="btn btn-outline-primary">
+    <i class="bi bi-calendar-check me-2"></i>
+    My Rentals
+</a>
+
+    <p class="text-muted">
+        Find agricultural equipment available for rent from other farmers.
+    </p>
+</div>
+
+<div id="loadingBox" class="loading-box">
+    <div class="spinner-border text-success"></div>
+    <p class="mt-3 text-muted">Loading available equipment...</p>
+</div>
+
+<div id="errorBox" class="alert alert-danger d-none"></div>
+
+<div id="emptyBox" class="empty-box d-none">
+    <i class="bi bi-tractor fs-1 text-muted"></i>
+    <h4 class="mt-3">No equipment available</h4>
+    <p class="text-muted">
+        Other farmers have not listed equipment for rental yet.
+    </p>
+</div>
+
+<div id="equipmentGrid" class="row g-4"></div>
+```
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="auth.js"></script>
+
+<script>
+let currentUser = null;
+
+document.addEventListener('DOMContentLoaded', async () => {
+
+    currentUser = AgriAuth.requireAuth('FARMER');
+
+    if (!currentUser) {
+        return;
+    }
+
+    AgriAuth.renderNavbar('navbar-container', 'rent-equipment');
+
+    await loadAvailableEquipment();
+});
+
+async function loadAvailableEquipment() {
+
+    const loadingBox =
+        document.getElementById('loadingBox');
+
+    const errorBox =
+        document.getElementById('errorBox');
+
+    const emptyBox =
+        document.getElementById('emptyBox');
+
+    const grid =
+        document.getElementById('equipmentGrid');
+
+    try {
+
+        const response = await fetch(
+            '/api/equipment',
+            {
+                credentials: 'include'
+            }
+        );
+
+        if (!response.ok) {
+            throw new Error('Unable to load equipment.');
+        }
+
+        const equipmentList = await response.json();
+
+        loadingBox.classList.add('d-none');
+
+        const otherFarmersEquipment =
+            equipmentList.filter(equipment =>
+                equipment.ownerId !== currentUser.id &&
+                equipment.available === true
+            );
+
+        if (otherFarmersEquipment.length === 0) {
+            emptyBox.classList.remove('d-none');
+            return;
+        }
+
+        grid.innerHTML =
+            otherFarmersEquipment.map(renderEquipmentCard).join('');
+
+    } catch (error) {
+
+        loadingBox.classList.add('d-none');
+
+        errorBox.textContent =
+            error.message || 'Unable to load equipment.';
+
+        errorBox.classList.remove('d-none');
+    }
+}
+
+function renderEquipmentCard(equipment) {
+
+    const price =
+        Number(equipment.rentalPricePerDay || 0)
+            .toLocaleString('en-IN');
+
+    const ownerName =
+        equipment.ownerName ||
+        equipment.farmerName ||
+        'Farmer';
+
+    const location =
+        equipment.location ||
+        'Location not specified';
+
+    return `
+        <div class="col-md-6 col-lg-4">
+
+            <div class="equipment-card">
+
+                <div class="equipment-image">
+                    <i class="bi bi-tractor"></i>
+                </div>
+
+                <div class="equipment-body">
+
+                    <div class="d-flex justify-content-between align-items-start gap-2">
+
+                        <h4 class="mb-1">
+                            ${escapeHtml(equipment.name || 'Equipment')}
+                        </h4>
+
+                        <span class="badge bg-success-subtle text-success">
+                            Available
+                        </span>
+
+                    </div>
+
+                    <p class="text-muted mb-2">
+                        ${escapeHtml(equipment.type || 'Agricultural Equipment')}
+                    </p>
+
+                    <p class="small text-muted">
+                        ${escapeHtml(
+                            equipment.description ||
+                            'No description available.'
+                        )}
+                    </p>
+
+                    <div class="equipment-price">
+                        ₹${price}
+                        <small class="text-muted fw-normal">
+                            / day
+                        </small>
+                    </div>
+
+                    <div class="owner-box">
+
+                        <div class="small text-muted">
+                            Equipment Owner
+                        </div>
+
+                        <strong>
+                            ${escapeHtml(ownerName)}
+                        </strong>
+
+                        <div class="small text-muted mt-1">
+                            <i class="bi bi-geo-alt me-1"></i>
+                            ${escapeHtml(location)}
+                        </div>
+
+                    </div>
+
+                    <button
+                        class="btn btn-success w-100"
+                        onclick="rentEquipment(${equipment.id})"
+                    >
+                        <i class="bi bi-calendar-check me-2"></i>
+                        Rent Equipment
+                    </button>
+
+                </div>
+
+            </div>
+
+        </div>
+    `;
+}
+
+function rentEquipment(equipmentId) {
+
+    window.location.href =
+        `farmer-equipment-rent.html?equipmentId=${equipmentId}`;
+}
+
+function escapeHtml(value) {
+
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+</script>
+
+</body>
+</html>

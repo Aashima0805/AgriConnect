@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Dashboard - AgriConnect</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Custom AgriConnect CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Common Navbar Container -->
+    <div id="navbar-container"></div>
+
+    <!-- Main Dashboard Workspace -->
+    <main class="container py-4">
+        <!-- Welcome Hero Section -->
+        <section class="welcome-hero mb-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <span class="badge bg-primary-subtle text-primary px-3 py-1 rounded-pill mb-2">Customer Workspace</span>
+                    <h1 class="welcome-title" id="customerWelcomeTitle">Welcome, Customer</h1>
+                    <p class="welcome-desc">
+                        Discover farm-fresh harvests directly from local producers, locate nearby farms, manage your cart, and track deliveries.
+                    </p>
+                </div>
+                <div class="text-end d-none d-md-block">
+                    <span class="badge bg-light text-muted border p-2">
+                        <i class="bi bi-shield-check text-primary"></i> Authenticated Customer Session
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <!-- Placeholder Statistics Area -->
+        <section class="mb-5">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="bi bi-speedometer2 text-primary"></i> Shopping & Order Overview
+                </h2>
+                <span class="badge bg-light text-muted border">Live Overview</span>
+            </div>
+            <div class="row g-3">
+                <!-- Products Stat -->
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="stat-label">Marketplace</span>
+                            <div class="stat-icon" style="background-color: #E3F2FD; color: #1565C0;"><i class="bi bi-shop"></i></div>
+                        </div>
+                        <div class="stat-value" id="dashProductCount">--</div>
+                        <div class="stat-subtext">Available fresh produce items</div>
+                    </div>
+                </div>
+
+                <!-- Cart Stat (live count via API) -->
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card" style="cursor:pointer;" onclick="window.location.href='customer-cart.html'">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="stat-label">Cart Items</span>
+                            <div class="stat-icon" style="background-color: #FFF3E0; color: #E65100;"><i class="bi bi-cart3"></i></div>
+                        </div>
+                        <div class="stat-value" id="dashCartCount">--</div>
+                        <div class="stat-subtext">Products ready for checkout</div>
+                    </div>
+                </div>
+
+                <!-- Orders Stat -->
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card" style="cursor:pointer;" onclick="window.location.href='customer-orders.html'">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="stat-label">Active Orders</span>
+                            <div class="stat-icon" style="background-color: #E3F2FD; color: #1565C0;"><i class="bi bi-box2"></i></div>
+                        </div>
+                        <div class="stat-value" id="dashOrdersCount">--</div>
+                        <div class="stat-subtext">Placed orders & history</div>
+                    </div>
+                </div>
+
+                <!-- Reviews Stat -->
+                <div class="col-6 col-lg-3">
+                    <div class="stat-card" style="cursor:pointer;" onclick="window.location.href='customer-reviews.html'">
+                        <div class="d-flex align-items-center justify-content-between">
+                            <span class="stat-label">Reviews</span>
+                            <div class="stat-icon" style="background-color: #FEF3C7; color: #D97706;"><i class="bi bi-star"></i></div>
+                        </div>
+                        <div class="stat-value" id="dashReviewsCount">--</div>
+                        <div class="stat-subtext">Produce ratings submitted</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Quick Actions Grid -->
+        <section class="mb-5">
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="bi bi-lightning-charge text-primary"></i> Customer Quick Actions
+                </h2>
+                <span class="badge bg-light text-muted border">Module Navigation</span>
+            </div>
+            <div class="row g-3">
+                <!-- Marketplace -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="action-card" onclick="window.location.href='customer-marketplace.html'">
+                        <div class="action-icon" style="background-color: #E3F2FD; color: #1565C0;"><i class="bi bi-shop"></i></div>
+                        <div class="action-title">
+                            <span>Marketplace</span>
+                            <span class="action-badge">Live</span>
+                        </div>
+                        <p class="action-desc">Explore farm-fresh vegetables, grains, fruits, and organic crops.</p>
+                    </div>
+                </div>
+
+                <!-- Nearby Farmers -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="action-card" onclick="window.location.href='customer-nearby.html'">
+                        <div class="action-icon" style="background-color: #E8F5E9; color: #2E7D32;"><i class="bi bi-geo-alt"></i></div>
+                        <div class="action-title">
+                            <span>Nearby Farmers</span>
+                            <span class="action-badge">Live</span>
+                        </div>
+                        <p class="action-desc">Find local producers nearby to minimize food miles and freight time.</p>
+                    </div>
+                </div>
+
+                <!-- Cart -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="action-card" onclick="window.location.href='customer-cart.html'">
+                        <div class="action-icon" style="background-color: #FFF3E0; color: #E65100;"><i class="bi bi-cart3"></i></div>
+                        <div class="action-title">
+                            <span>Cart</span>
+                            <span class="action-badge">Live</span>
+                        </div>
+                        <p class="action-desc">Review your basket items, adjust quantities, and manage your produce selection.</p>
+                    </div>
+                </div>
+
+                <!-- Checkout (Phase 4 - live) -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="action-card" onclick="window.location.href='customer-checkout.html'">
+                        <div class="action-icon" style="background-color: #F0FDF4; color: #15803D;"><i class="bi bi-credit-card"></i></div>
+                        <div class="action-title">
+                            <span>Checkout</span>
+                            <span class="action-badge">Live</span>
+                        </div>
+                        <p class="action-desc">Place your order, choose delivery type, and complete mock payment.</p>
+                    </div>
+                </div>
+
+                <!-- Orders -->
+                <div class="col-md-6 col-lg-6">
+                    <div class="action-card" onclick="window.location.href='customer-orders.html'">
+                        <div class="action-icon" style="background-color: #E3F2FD; color: #1565C0;"><i class="bi bi-receipt-cutoff"></i></div>
+                        <div class="action-title">
+                            <span>My Orders</span>
+                            <span class="action-badge">Live</span>
+                        </div>
+                        <p class="action-desc">View order history, item breakdowns, payment status, and manage active orders.</p>
+                    </div>
+                </div>
+
+                <!-- Reviews -->
+                <div class="col-md-6 col-lg-6">
+                    <div class="action-card" onclick="window.location.href='customer-reviews.html'">
+                        <div class="action-icon" style="background-color: #FFF8E1; color: #F57F17;"><i class="bi bi-star"></i></div>
+                        <div class="action-title">
+                            <span>Reviews & Ratings</span>
+                            <span class="action-badge">Live</span>
+                        </div>
+                        <p class="action-desc">Share verified feedback and ratings to reward dedicated producers.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Information Notice -->
+        <section class="agri-card p-4">
+            <div class="d-flex align-items-center gap-3">
+                <div class="text-primary fs-3"><i class="bi bi-info-circle"></i></div>
+                <div>
+                    <h5 class="fw-bold mb-1">Customer Workspace Ready</h5>
+                    <p class="text-muted small mb-0">
+                        Authenticated customer session verified. Marketplace, nearby farmer discovery, cart, checkout, orders, tracking, and reviews are available from this workspace.
+                    </p>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="agri-footer mt-auto">
+        <div class="container text-center">
+            <p class="mb-0 small text-white-50">AgriConnect &bull; Customer Platform &bull; Phase 4</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- AgriAuth + FarmerAPI (needed for live cart count) -->
+    <script src="auth.js"></script>
+    <script src="farmer-api.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Authentication Guard: require role CUSTOMER
+            const user = AgriAuth.requireAuth('CUSTOMER');
+            if (!user) return;
+
+            // Render common navbar
+            AgriAuth.renderNavbar('navbar-container', 'dashboard');
+
+            // Populate personalized greeting
+            document.getElementById('customerWelcomeTitle').textContent = `Welcome, ${user.name}`;
+
+
+            // Load live marketplace count
+            try {
+                const resp = await FarmerAPI.get('/api/products');
+                if (resp.ok && Array.isArray(resp.data)) {
+                    const available = resp.data.filter(p => p.available !== false);
+                    const el = document.getElementById('dashProductCount');
+                    if (el) el.textContent = available.length;
+                }
+            } catch (e) {
+                console.warn('[Dashboard] Could not load marketplace count:', e);
+            }
+
+            // Load live cart item count into the stat card (best-effort)
+            try {
+                const resp = await FarmerAPI.get(`/api/cart/${user.id}`);
+                if (resp.ok && resp.data) {
+                    const count = typeof resp.data.totalItems === 'number' ? resp.data.totalItems : 0;
+                    const el = document.getElementById('dashCartCount');
+                    if (el) el.textContent = count;
+                }
+            } catch (e) {
+                console.warn('[Dashboard] Could not load cart count:', e);
+            }
+
+            // Load live orders count into the stat card (best-effort)
+            try {
+                const resp = await FarmerAPI.get(`/api/orders/customer/${user.id}`);
+                if (resp.ok && Array.isArray(resp.data)) {
+                    const el = document.getElementById('dashOrdersCount');
+                    if (el) el.textContent = resp.data.length;
+                }
+            } catch (e) {
+                console.warn('[Dashboard] Could not load orders count:', e);
+            }
+
+            // Load live reviews count into the stat card (best-effort)
+            try {
+                const resp = await FarmerAPI.get(`/api/reviews/customer/${user.id}`);
+                if (resp.ok && Array.isArray(resp.data)) {
+                    const el = document.getElementById('dashReviewsCount');
+                    if (el) el.textContent = resp.data.length;
+                }
+            } catch (e) {
+                console.warn('[Dashboard] Could not load reviews count:', e);
+            }
+        });
+    </script>
+</body>
+</html>

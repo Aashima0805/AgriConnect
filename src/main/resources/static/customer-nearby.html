@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nearby Products - AgriConnect</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
+</head>
+<body>
+    <div id="navbar-container"></div>
+
+
+<main class="container py-4">
+    <div class="mb-4">
+        <h2 class="fw-bold">Nearby Products</h2>
+        <p class="text-muted mb-0">
+            Find agricultural products from farmers near you.
+        </p>
+    </div>
+
+    <section class="mb-4 d-flex justify-content-between align-items-center gap-3 flex-wrap">
+        <div class="input-group" style="max-width: 550px;">
+            <input
+                type="text"
+                id="searchInput"
+                class="form-control"
+                placeholder="Search nearby products..."
+            >
+            <button class="btn btn-outline-secondary" type="button" id="searchBtn">
+                Search
+            </button>
+        </div>
+
+        <select id="radiusSelect" class="form-select" style="width: 150px;">
+            <option value="10">10 km</option>
+            <option value="25">25 km</option>
+            <option value="50" selected>50 km</option>
+            <option value="100">100 km</option>
+        </select>
+    </section>
+
+    <div id="nearbyLoading" class="text-center py-5 d-none">
+        <div class="spinner-border text-success" role="status"></div>
+        <p class="mt-3 text-muted">Finding nearby products...</p>
+    </div>
+
+    <div id="nearbyError" class="alert alert-danger d-none"></div>
+
+    <div id="nearbyMessage" class="alert alert-info d-none"></div>
+
+    <div id="productGrid" class="row g-3"></div>
+
+    <div class="text-center">
+        <button id="loadMoreBtn" class="btn btn-primary mt-4 d-none">
+            Load More
+        </button>
+    </div>
+</main>
+
+<div class="modal fade" id="productDetailModal" tabindex="-1"
+     aria-labelledby="productDetailLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="productDetailLabel">
+                    Product Details
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"
+                    aria-label="Close">
+                </button>
+            </div>
+
+            <div class="modal-body" id="productDetailBody"></div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="auth.js"></script>
+<script src="farmer-api.js"></script>
+<script src="customer-nearby.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const user = AgriAuth.requireAuth('CUSTOMER');
+
+        if (!user) {
+            return;
+        }
+
+        AgriAuth.renderNavbar('navbar-container', 'nearby');
+
+        initNearbyProducts(user);
+    });
+</script>
+
+
+</body>
+</html>

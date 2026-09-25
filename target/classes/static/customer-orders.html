@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders - AgriConnect</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- AgriConnect Design System -->
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* ── Order status badges ── */
+        .order-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.8rem;
+            border-radius: 999px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+        .status-PLACED           { background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
+        .status-CONFIRMED        { background: #F0FDF4; color: #15803D; border: 1px solid #BBF7D0; }
+        .status-PACKED           { background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; }
+        .status-SHIPPED          { background: #F5F3FF; color: #6D28D9; border: 1px solid #DDD6FE; }
+        .status-OUT_FOR_DELIVERY { background: #FFF7ED; color: #C2410C; border: 1px solid #FED7AA; }
+        .status-DELIVERED        { background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; }
+        .status-CANCELLED        { background: #FFF1F2; color: #BE123C; border: 1px solid #FECDD3; }
+
+        /* ── Payment status badges ── */
+        .payment-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.2rem 0.55rem;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .pay-PAID     { background: #DCFCE7; color: #166534; }
+        .pay-PENDING  { background: #FEF9C3; color: #854D0E; }
+        .pay-FAILED   { background: #FEE2E2; color: #991B1B; }
+
+        /* ── Order card ── */
+        .order-card {
+            background: #fff;
+            border: 1px solid #E5E7EB;
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .order-card:hover {
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.07);
+        }
+        .order-card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #F3F4F6;
+        }
+        .order-id-label {
+            font-size: 0.75rem;
+            color: #6B7280;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 0.15rem;
+        }
+        .order-id-value {
+            font-size: 1.15rem;
+            font-weight: 800;
+            color: #111827;
+        }
+        .order-date-label {
+            font-size: 0.8rem;
+            color: #6B7280;
+        }
+
+        /* ── Item thumbnail & row ── */
+        .order-item-thumb {
+            width: 44px;
+            height: 44px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #E5E7EB;
+            flex-shrink: 0;
+            background: #F9FAFB;
+        }
+        .order-item-thumb-placeholder {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            border: 1px solid #E5E7EB;
+            background: #F0FDF4;
+            color: #16A34A;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+        .item-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.6rem 0;
+            border-bottom: 1px dashed #F3F4F6;
+            gap: 0.75rem;
+        }
+        .item-row:last-child { border-bottom: none; }
+        .item-name {
+            font-weight: 600;
+            font-size: 0.92rem;
+            color: #1F2937;
+        }
+        .item-meta {
+            font-size: 0.78rem;
+            color: #6B7280;
+        }
+        .item-price {
+            font-weight: 700;
+            font-size: 0.92rem;
+            color: #111827;
+            white-space: nowrap;
+            text-align: right;
+        }
+        .item-price-unit {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: #6B7280;
+        }
+
+        /* ── Order meta info chips ── */
+        .order-meta-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem 1rem;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid #F3F4F6;
+        }
+        .meta-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            font-size: 0.8rem;
+            color: #374151;
+            background: #F9FAFB;
+            border: 1px solid #E5E7EB;
+            border-radius: 8px;
+            padding: 0.3rem 0.65rem;
+        }
+        .meta-chip i { color: #16A34A; font-size: 0.85rem; }
+
+        /* ── Total row & actions ── */
+        .order-footer-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-top: 1.25rem;
+            padding-top: 1rem;
+            border-top: 1px solid #F3F4F6;
+        }
+        .order-total-block {
+            display: flex;
+            align-items: baseline;
+            gap: 0.5rem;
+        }
+        .order-total-label {
+            font-size: 0.85rem;
+            color: #6B7280;
+            font-weight: 500;
+        }
+        .order-total-value {
+            font-size: 1.25rem;
+            font-weight: 800;
+            color: #16A34A;
+        }
+        .order-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        /* ── Empty state ── */
+        .empty-orders-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 4rem 1.5rem;
+            background: #fff;
+            border: 2px dashed #E5E7EB;
+            border-radius: 16px;
+        }
+        .empty-orders-icon {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #F0FDF4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.25rem;
+            color: #16A34A;
+            margin-bottom: 1.25rem;
+        }
+        .empty-orders-title {
+            font-size: 1.35rem;
+            font-weight: 700;
+            color: #111827;
+            margin-bottom: 0.5rem;
+        }
+        .empty-orders-desc {
+            font-size: 0.92rem;
+            color: #6B7280;
+            max-width: 380px;
+            margin-bottom: 1.5rem;
+        }
+
+        /* ── Loading skeleton ── */
+        .skeleton {
+            background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: 8px;
+        }
+        @keyframes shimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* ── Modal detail ── */
+        .detail-section-title {
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #4B5563;
+            margin-bottom: 0.6rem;
+            padding-bottom: 0.35rem;
+            border-bottom: 1px solid #E5E7EB;
+        }
+        .detail-kv {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 0.4rem 0;
+            border-bottom: 1px solid #F3F4F6;
+            font-size: 0.88rem;
+        }
+        .detail-kv:last-child { border-bottom: none; }
+        .detail-kv .dk { color: #6B7280; font-weight: 500; }
+        .detail-kv .dv { color: #111827; font-weight: 600; text-align: right; max-width: 65%; word-break: break-word; }
+
+        /* ── Filter toolbar ── */
+        .filter-pill {
+            cursor: pointer;
+            padding: 0.35rem 0.9rem;
+            border-radius: 999px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            border: 1px solid #E5E7EB;
+            background: #fff;
+            color: #4B5563;
+            transition: all 0.15s ease;
+        }
+        .filter-pill:hover {
+            border-color: #16A34A;
+            color: #16A34A;
+        }
+        .filter-pill.active {
+            background: #16A34A;
+            border-color: #16A34A;
+            color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================
+         NAVBAR
+    ============================= -->
+    <nav class="navbar navbar-expand-lg agri-navbar sticky-top">
+        <div class="container">
+            <a class="navbar-brand agri-brand" href="customer-dashboard.html">
+                <i class="bi bi-flower1"></i> AgriConnect
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#ordersNav" aria-controls="ordersNav"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="ordersNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link agri-nav-link" href="customer-dashboard.html">
+                            <i class="bi bi-grid"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link agri-nav-link" href="customer-marketplace.html">
+                            <i class="bi bi-shop"></i> Marketplace
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link agri-nav-link" href="customer-nearby.html">
+                            <i class="bi bi-geo-alt"></i> Nearby Farmers
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link agri-nav-link" href="customer-cart.html">
+                            <i class="bi bi-cart3"></i> Cart
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link agri-nav-link active" href="customer-orders.html">
+                            <i class="bi bi-receipt-cutoff"></i> Orders
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link agri-nav-link" href="customer-reviews.html">
+                            <i class="bi bi-star"></i> Reviews
+                        </a>
+                    </li>
+                </ul>
+                <div id="navUserArea" class="d-flex align-items-center gap-3 flex-wrap"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ============================
+         PAGE HEADER
+    ============================= -->
+    <div class="bg-white border-bottom py-3 mb-4">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <a href="customer-dashboard.html" class="btn btn-outline-secondary btn-sm" title="Back to Dashboard">
+                        <i class="bi bi-arrow-left"></i>
+                    </a>
+                    <div>
+                        <h2 class="fw-bold text-dark m-0 d-flex align-items-center gap-2">
+                            <i class="bi bi-receipt-cutoff text-success"></i> My Orders
+                        </h2>
+                        <p class="text-muted small m-0">View order history, item breakdowns, delivery details, and manage cancellations</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="customer-marketplace.html" class="btn btn-agri-primary btn-sm">
+                        <i class="bi bi-shop"></i> Shop More Produce
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================
+         MAIN CONTENT
+    ============================= -->
+    <main class="container pb-5">
+
+        <!-- Alert Container -->
+        <div id="alertContainer" class="mb-3"></div>
+
+        <!-- Filter & Search Toolbar -->
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4" id="ordersToolbar" style="display:none !important;">
+            <div class="d-flex align-items-center gap-2 flex-wrap" id="statusFilterPills">
+                <button type="button" class="filter-pill active" onclick="filterByStatus('ALL')">All Orders (<span id="countAll">0</span>)</button>
+                <button type="button" class="filter-pill" onclick="filterByStatus('ACTIVE')">In Progress (<span id="countActive">0</span>)</button>
+                <button type="button" class="filter-pill" onclick="filterByStatus('DELIVERED')">Delivered (<span id="countDelivered">0</span>)</button>
+                <button type="button" class="filter-pill" onclick="filterByStatus('CANCELLED')">Cancelled (<span id="countCancelled">0</span>)</button>
+            </div>
+            <div class="input-group input-group-sm" style="max-width:240px;">
+                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" id="orderSearchInput" class="form-control border-start-0" placeholder="Search by ID or item…" oninput="filterOrders()">
+            </div>
+        </div>
+
+        <!-- Orders Container -->
+        <div id="ordersContainer">
+            <!-- Skeleton Loading State -->
+            <div id="ordersLoadingSkeleton">
+                <div class="order-card mb-3">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="skeleton" style="height:24px;width:30%;"></div>
+                        <div class="skeleton" style="height:24px;width:15%;"></div>
+                    </div>
+                    <div class="skeleton mb-2" style="height:16px;width:80%;"></div>
+                    <div class="skeleton mb-2" style="height:16px;width:60%;"></div>
+                    <div class="skeleton" style="height:16px;width:40%;"></div>
+                </div>
+                <div class="order-card mb-3">
+                    <div class="d-flex justify-content-between mb-3">
+                        <div class="skeleton" style="height:24px;width:25%;"></div>
+                        <div class="skeleton" style="height:24px;width:15%;"></div>
+                    </div>
+                    <div class="skeleton mb-2" style="height:16px;width:75%;"></div>
+                    <div class="skeleton" style="height:16px;width:50%;"></div>
+                </div>
+            </div>
+
+            <!-- Real orders injected here -->
+            <div id="ordersList"></div>
+        </div>
+
+    </main>
+
+    <!-- ============================
+         ORDER DETAIL MODAL
+    ============================= -->
+    <div class="modal fade" id="orderDetailModal" tabindex="-1" aria-labelledby="orderDetailModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content" style="border-radius:16px;overflow:hidden;">
+                <div class="modal-header bg-light border-bottom">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-receipt text-success fs-5"></i>
+                        <h5 class="modal-title fw-bold text-dark m-0" id="orderDetailModalLabel">Order Details</h5>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4" id="orderDetailBody">
+                    <!-- Filled dynamically -->
+                </div>
+                <div class="modal-footer border-top bg-light">
+                    <div class="d-flex justify-content-between align-items-center w-100 flex-wrap gap-2">
+                        <div id="modalCancelAction"></div>
+                        <button type="button" class="btn btn-outline-secondary btn-sm px-4 ms-auto" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================
+         CANCEL CONFIRMATION MODAL
+    ============================= -->
+    <div class="modal fade" id="cancelConfirmModal" tabindex="-1" aria-labelledby="cancelConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius:16px;overflow:hidden;">
+                <div class="modal-body p-4 text-center">
+                    <div class="mx-auto mb-3 d-inline-flex align-items-center justify-content-center"
+                         style="width:60px;height:60px;border-radius:50%;background:#FFF1F2;color:#BE123C;font-size:1.85rem;">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2 text-dark">Cancel this order?</h5>
+                    <p class="text-muted small mb-3" id="cancelConfirmText">
+                        Order #— will be cancelled. Stock will be restored to the farmer's inventory.
+                    </p>
+                    <div class="alert alert-warning py-2 px-3 small text-start mb-4">
+                        <i class="bi bi-info-circle-fill me-1"></i>
+                        Cancellation is only available while the order is in PLACED, CONFIRMED, or PACKED status.
+                    </div>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Keep Order</button>
+                        <button type="button" class="btn btn-danger px-4" id="confirmCancelBtn" onclick="executeCancelOrder()">
+                            <span id="cancelBtnSpinner" class="spinner-border spinner-border-sm d-none me-1" role="status"></span>
+                            Confirm Cancellation
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================
+         FOOTER
+    ============================= -->
+    <footer class="agri-footer mt-auto">
+        <div class="container text-center">
+            <p class="mb-0 small text-white-50">
+                AgriConnect &bull; Customer Order History &bull; Phase 4
+            </p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- AgriConnect auth + farmer API -->
+    <script src="auth.js"></script>
+    <script src="farmer-api.js"></script>
+
+    <script>
+    /* =====================================================================
+       AgriConnect – Customer Orders Page (Phase 4)
+       Backend Source of Truth:
+         GET /api/orders/customer/{customerId}  → List<OrderDto>
+         GET /api/orders/{id}?customerId={customerId}  → OrderDto
+         PUT /api/orders/{id}/cancel?customerId={customerId}  → Cancel response
+         GET /api/payments/order/{orderId}?customerId={customerId} → List<PaymentDto>
+       Auth: session-cookie via AgriAuth (No Bearer / JWT)
+    ===================================================================== */
+
+    let currentUser     = null;
+    let allOrders       = [];
+    let currentFilter   = 'ALL';
+    let pendingCancelId = null;
+
+    /* Backend cancellable statuses (from OrderService cancelOrder logic) */
+    const CANCELLABLE_STATUSES = new Set(['PLACED', 'CONFIRMED', 'PACKED']);
+
+    /* Status badge metadata */
+    const STATUS_META = {
+        PLACED:           { icon: 'bi-clock',         label: 'Placed' },
+        CONFIRMED:        { icon: 'bi-check-circle',   label: 'Confirmed' },
+        PACKED:           { icon: 'bi-box-seam',      label: 'Packed' },
+        SHIPPED:          { icon: 'bi-truck',         label: 'Shipped' },
+        OUT_FOR_DELIVERY: { icon: 'bi-bicycle',       label: 'Out for Delivery' },
+        DELIVERED:        { icon: 'bi-bag-check-fill', label: 'Delivered' },
+        CANCELLED:        { icon: 'bi-x-circle-fill', label: 'Cancelled' }
+    };
+
+    /* ──────────────────────────────────────────────
+       BOOT
+    ─────────────────────────────────────────────── */
+    document.addEventListener('DOMContentLoaded', () => {
+        // Auth Guard: Require CUSTOMER role
+        currentUser = AgriAuth.requireAuth('CUSTOMER');
+        if (!currentUser) return;
+
+        renderNavUser(currentUser);
+        loadOrders();
+    });
+
+    /* ──────────────────────────────────────────────
+       NAVBAR USER AREA
+    ─────────────────────────────────────────────── */
+    function renderNavUser(user) {
+        const area = document.getElementById('navUserArea');
+        if (!area) return;
+        area.innerHTML = `
+            <div class="agri-user-badge">
+                <i class="bi bi-person-circle text-success"></i>
+                <span>${escHtml(user.name)}</span>
+                <span class="agri-role-pill role-customer">Customer</span>
+            </div>
+            <button type="button" class="btn btn-outline-danger btn-sm" onclick="AgriAuth.logout()">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </button>`;
+    }
+
+    /* ──────────────────────────────────────────────
+       HELPERS & FORMATTERS
+    ─────────────────────────────────────────────── */
+    function escHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function formatCurrency(val) {
+        const n = parseFloat(val);
+        if (isNaN(n)) return '₹0.00';
+        return '₹' + n.toFixed(2);
+    }
+
+    function formatDate(raw) {
+        if (!raw) return '—';
+        try {
+            const d = new Date(raw);
+            return d.toLocaleString('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (e) {
+            return String(raw);
+        }
+    }
+
+    function statusBadgeHtml(status) {
+        const upper = (status || '').toUpperCase().trim();
+        const meta = STATUS_META[upper] || { icon: 'bi-circle', label: upper || 'Unknown' };
+        return `<span class="order-status-badge status-${escHtml(upper)}">
+                    <i class="bi ${meta.icon}"></i> ${escHtml(meta.label)}
+                </span>`;
+    }
+
+    function paymentStatusBadgeHtml(status) {
+        const upper = (status || 'PENDING').toUpperCase().trim();
+        const icon = upper === 'PAID' ? 'bi-check-circle-fill'
+                   : upper === 'FAILED' ? 'bi-x-circle-fill'
+                   : 'bi-clock-fill';
+        return `<span class="payment-status-badge pay-${escHtml(upper)}">
+                    <i class="bi ${icon}"></i> Payment ${escHtml(upper)}
+                </span>`;
+    }
+
+    function showAlert(type, msg) {
+        const c = document.getElementById('alertContainer');
+        if (!c) return;
+        const icon = type === 'success' ? 'check-circle-fill' : 'exclamation-triangle-fill';
+        c.innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+                <i class="bi bi-${icon}"></i>
+                <div>${escHtml(msg)}</div>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>`;
+    }
+
+    /* ──────────────────────────────────────────────
+       API WRAPPERS (Session-cookie, no Bearer token)
+    ─────────────────────────────────────────────── */
+    async function apiGet(path) {
+        const resp = await fetch(path, { credentials: 'include' });
+        const data = await resp.json().catch(() => ({}));
+        return { ok: resp.ok, status: resp.status, data };
+    }
+
+    async function apiPut(path, body) {
+        const opts = {
+            method: 'PUT',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' }
+        };
+        if (body !== undefined) opts.body = JSON.stringify(body);
+        const resp = await fetch(path, opts);
+        const data = await resp.json().catch(() => ({}));
+        return { ok: resp.ok, status: resp.status, data };
+    }
+
+    /* ──────────────────────────────────────────────
+       LOAD ORDERS
+    ─────────────────────────────────────────────── */
+    async function loadOrders() {
+        const skeleton = document.getElementById('ordersLoadingSkeleton');
+        const list     = document.getElementById('ordersList');
+        const toolbar  = document.getElementById('ordersToolbar');
+
+        if (skeleton) skeleton.style.display = '';
+        if (list)     list.innerHTML = '';
+
+        try {
+            const res = await apiGet(`/api/orders/customer/${currentUser.id}`);
+            if (skeleton) skeleton.style.display = 'none';
+
+            if (!res.ok) {
+                showAlert('danger', `Failed to load orders (${res.status}). Please refresh or try again later.`);
+                return;
+            }
+
+            allOrders = Array.isArray(res.data) ? res.data : [];
+
+            if (allOrders.length === 0) {
+                if (toolbar) toolbar.style.setProperty('display', 'none', 'important');
+                list.innerHTML = renderEmptyState();
+                return;
+            }
+
+            // Show toolbar when orders exist
+            if (toolbar) toolbar.style.removeProperty('display');
+
+            // Update filter counters
+            updateFilterCounters();
+
+            // Sort newest first
+            allOrders.sort((a, b) => {
+                const da = a.createdAt ? new Date(a.createdAt) : 0;
+                const db = b.createdAt ? new Date(b.createdAt) : 0;
+                return db - da;
+            });
+
+            filterOrders();
+
+        } catch (err) {
+            if (skeleton) skeleton.style.display = 'none';
+            console.error('[Orders] loadOrders error:', err);
+            showAlert('danger', 'Network error. Could not connect to order service.');
+        }
+    }
+
+    function updateFilterCounters() {
+        const countAll       = allOrders.length;
+        const countActive    = allOrders.filter(o => ['PLACED', 'CONFIRMED', 'PACKED', 'SHIPPED', 'OUT_FOR_DELIVERY'].includes(o.status)).length;
+        const countDelivered = allOrders.filter(o => o.status === 'DELIVERED').length;
+        const countCancelled = allOrders.filter(o => o.status === 'CANCELLED').length;
+
+        const elAll       = document.getElementById('countAll');
+        const elActive    = document.getElementById('countActive');
+        const elDelivered = document.getElementById('countDelivered');
+        const elCancelled = document.getElementById('countCancelled');
+
+        if (elAll)       elAll.textContent = countAll;
+        if (elActive)    elActive.textContent = countActive;
+        if (elDelivered) elDelivered.textContent = countDelivered;
+        if (elCancelled) elCancelled.textContent = countCancelled;
+    }
+
+    function filterByStatus(statusKey) {
+        currentFilter = statusKey;
+        document.querySelectorAll('.filter-pill').forEach(btn => btn.classList.remove('active'));
+        if (event && event.target) {
+            event.target.closest('.filter-pill')?.classList.add('active');
+        }
+        filterOrders();
+    }
+
+    function filterOrders() {
+        const query = (document.getElementById('orderSearchInput')?.value || '').trim().toLowerCase();
+        let filtered = allOrders;
+
+        if (currentFilter === 'ACTIVE') {
+            filtered = filtered.filter(o => ['PLACED', 'CONFIRMED', 'PACKED', 'SHIPPED', 'OUT_FOR_DELIVERY'].includes(o.status));
+        } else if (currentFilter === 'DELIVERED') {
+            filtered = filtered.filter(o => o.status === 'DELIVERED');
+        } else if (currentFilter === 'CANCELLED') {
+            filtered = filtered.filter(o => o.status === 'CANCELLED');
+        }
+
+        if (query) {
+            filtered = filtered.filter(o => {
+                const matchesId = String(o.id).includes(query);
+                const matchesItem = o.items && o.items.some(i => (i.productName || '').toLowerCase().includes(query));
+                const matchesAddr = (o.deliveryAddress || '').toLowerCase().includes(query);
+                return matchesId || matchesItem || matchesAddr;
+            });
+        }
+
+        const list = document.getElementById('ordersList');
+        if (!list) return;
+
+        if (filtered.length === 0) {
+            list.innerHTML = `
+                <div class="text-center py-5 text-muted bg-white rounded-4 border p-4">
+                    <i class="bi bi-search fs-2 d-block mb-2"></i>
+                    <h6 class="fw-bold">No orders match your filter</h6>
+                    <p class="small mb-0">Try changing your search query or selecting a different status filter.</p>
+                </div>`;
+            return;
+        }
+
+        list.innerHTML = filtered.map(renderOrderCard).join('');
+    }
+
+    /* ──────────────────────────────────────────────
+       RENDER ORDER CARD
+    ─────────────────────────────────────────────── */
+    function renderOrderCard(order) {
+        const cancellable = CANCELLABLE_STATUSES.has((order.status || '').toUpperCase());
+
+        const items = Array.isArray(order.items) ? order.items : [];
+        const itemsCount = items.length;
+
+        const itemsListHtml = items.map(item => {
+            const unitPrice = parseFloat(item.unitPrice) || 0;
+            const qty = Number(item.quantity) || 1;
+            const subtotal = parseFloat(item.subtotal) || (unitPrice * qty);
+            const unit = item.unit || 'unit';
+
+            const thumbHtml = item.productImageUrl
+                ? `<img src="${escHtml(item.productImageUrl)}" class="order-item-thumb" alt="${escHtml(item.productName || '')}" onerror="this.outerHTML='<div class=\\'order-item-thumb-placeholder\\'>🌾</div>'">`
+                : `<div class="order-item-thumb-placeholder">🌾</div>`;
+
+            return `
+            <div class="item-row">
+                <div class="d-flex align-items-center gap-3 min-w-0">
+                    ${thumbHtml}
+                    <div class="min-w-0">
+                        <div class="item-name text-truncate">${escHtml(item.productName || 'Agricultural Produce')}</div>
+                        <div class="item-meta">
+                            ${item.productCategory ? `<span class="badge bg-light text-muted border me-1">${escHtml(item.productCategory)}</span>` : ''}
+                            <span>Qty: <strong>${qty} ${escHtml(unit)}</strong> &times; ${formatCurrency(unitPrice)}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="item-price">
+                    ${formatCurrency(subtotal)}
+                </div>
+            </div>`;
+        }).join('');
+
+        return `
+        <div class="order-card mb-4" id="order-card-${order.id}">
+            <!-- Header -->
+            <div class="order-card-header">
+                <div>
+                    <div class="order-id-label">Order Number</div>
+                    <div class="order-id-value">#${order.id}</div>
+                    <div class="order-date-label mt-1">
+                        <i class="bi bi-calendar3 me-1"></i> Placed on ${formatDate(order.createdAt)}
+                    </div>
+                </div>
+                <div class="d-flex flex-column align-items-end gap-1">
+                    ${statusBadgeHtml(order.status)}
+                    <div class="mt-1">${paymentStatusBadgeHtml(order.paymentStatus)}</div>
+                </div>
+            </div>
+
+            <!-- Items -->
+            <div class="mb-2">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="small fw-semibold text-muted text-uppercase" style="letter-spacing:0.04em;">
+                        <i class="bi bi-basket3 me-1 text-success"></i> Items (${itemsCount})
+                    </span>
+                </div>
+                <div>${itemsListHtml || '<p class="text-muted small fst-italic">No item details available.</p>'}</div>
+            </div>
+
+            <!-- Meta Information Chips -->
+            <div class="order-meta-row">
+                ${order.deliveryType ? `
+                <div class="meta-chip" title="Delivery Method">
+                    <i class="bi bi-truck"></i>
+                    <span>${escHtml(order.deliveryType)}</span>
+                </div>` : ''}
+                ${order.deliveryAddress ? `
+                <div class="meta-chip text-truncate" style="max-width:320px;" title="${escHtml(order.deliveryAddress)}">
+                    <i class="bi bi-geo-alt"></i>
+                    <span class="text-truncate">${escHtml(order.deliveryAddress)}</span>
+                </div>` : ''}
+                ${order.customerPhone ? `
+                <div class="meta-chip" title="Customer Phone">
+                    <i class="bi bi-telephone"></i>
+                    <span>${escHtml(order.customerPhone)}</span>
+                </div>` : ''}
+            </div>
+
+            <!-- Footer: Total & Actions -->
+            <div class="order-footer-row">
+                <div class="order-total-block">
+                    <span class="order-total-label">Total Amount:</span>
+                    <span class="order-total-value">${formatCurrency(order.totalAmount)}</span>
+                </div>
+                <div class="order-actions">
+                    <a href="customer-order-tracking.html?id=${order.id}" class="btn btn-primary btn-sm px-3 fw-semibold">
+                        <i class="bi bi-geo-alt me-1"></i> Track Order
+                    </a>
+                    ${(order.status || '').toUpperCase() === 'DELIVERED' && items.length > 0 ? `
+                    <a href="customer-reviews.html?productId=${items[0].productId}" class="btn btn-outline-warning btn-sm px-3 fw-semibold text-dark">
+                        <i class="bi bi-star-fill text-warning me-1"></i> Rate Produce
+                    </a>` : ''}
+                    <button type="button" class="btn btn-outline-success btn-sm px-3 fw-semibold"
+                            onclick="showOrderDetail(${order.id})">
+                        <i class="bi bi-eye me-1"></i> View Details
+                    </button>
+                    ${cancellable ? `
+                    <button type="button" class="btn btn-outline-danger btn-sm px-3 fw-semibold"
+                            onclick="initCancelOrder(${order.id})">
+                        <i class="bi bi-x-circle me-1"></i> Cancel Order
+                    </button>` : ''}
+                </div>
+            </div>
+        </div>`;
+    }
+
+    /* ──────────────────────────────────────────────
+       EMPTY STATE
+    ─────────────────────────────────────────────── */
+    function renderEmptyState() {
+        return `
+        <div class="empty-orders-state">
+            <div class="empty-orders-icon">
+                <i class="bi bi-bag-x"></i>
+            </div>
+            <div class="empty-orders-title">No Orders Placed Yet</div>
+            <p class="empty-orders-desc">
+                You haven't ordered any produce yet. Explore the marketplace for farm-fresh crops, fruits, and vegetables direct from producers.
+            </p>
+            <a href="customer-marketplace.html" class="btn btn-success px-4 py-2 fw-semibold">
+                <i class="bi bi-shop me-2"></i> Browse Marketplace
+            </a>
+        </div>`;
+    }
+
+    /* ──────────────────────────────────────────────
+       VIEW ORDER DETAILS MODAL
+    ─────────────────────────────────────────────── */
+    async function showOrderDetail(orderId) {
+        const body  = document.getElementById('orderDetailBody');
+        const label = document.getElementById('orderDetailModalLabel');
+        const cancelActionContainer = document.getElementById('modalCancelAction');
+
+        label.textContent = `Order #${orderId}`;
+        cancelActionContainer.innerHTML = '';
+
+        body.innerHTML = `
+            <div class="text-center py-5">
+                <div class="spinner-border text-success" role="status"></div>
+                <p class="mt-2 text-muted small">Fetching complete order details…</p>
+            </div>`;
+
+        const modalEl = document.getElementById('orderDetailModal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+
+        try {
+            // Fetch single order details
+            const res = await apiGet(`/api/orders/${orderId}?customerId=${currentUser.id}`);
+            if (!res.ok || !res.data) {
+                body.innerHTML = `<div class="alert alert-danger">Could not load details for Order #${orderId} (${res.status}).</div>`;
+                return;
+            }
+
+            const o = res.data;
+
+            // Also attempt to fetch payment information if available
+            let paymentData = null;
+            try {
+                const payRes = await apiGet(`/api/payments/order/${orderId}?customerId=${currentUser.id}`);
+                if (payRes.ok && Array.isArray(payRes.data) && payRes.data.length > 0) {
+                    paymentData = payRes.data[0];
+                }
+            } catch (_) {
+                // Payment fetch is optional
+            }
+
+            body.innerHTML = buildOrderDetailModalHtml(o, paymentData);
+
+            // Actions in modal footer: Track Order + (if cancellable) Cancel Order
+            let actionsHtml = `
+                <a href="customer-order-tracking.html?id=${o.id}" class="btn btn-primary btn-sm px-3 fw-semibold">
+                    <i class="bi bi-geo-alt me-1"></i> Track Order Status
+                </a>`;
+
+            if (CANCELLABLE_STATUSES.has((o.status || '').toUpperCase())) {
+                actionsHtml += `
+                    <button type="button" class="btn btn-outline-danger btn-sm px-3"
+                            onclick="bootstrap.Modal.getInstance(document.getElementById('orderDetailModal')).hide(); initCancelOrder(${o.id});">
+                        <i class="bi bi-x-circle me-1"></i> Cancel this Order
+                    </button>`;
+            }
+            cancelActionContainer.innerHTML = actionsHtml;
+
+        } catch (err) {
+            console.error('[Orders] showOrderDetail error:', err);
+            body.innerHTML = `<div class="alert alert-danger">Network error loading order details.</div>`;
+        }
+    }
+
+    function buildOrderDetailModalHtml(o, payment) {
+        const items = Array.isArray(o.items) ? o.items : [];
+
+        const itemsHtml = items.map(item => {
+            const unitPrice = parseFloat(item.unitPrice) || 0;
+            const qty = Number(item.quantity) || 1;
+            const subtotal = parseFloat(item.subtotal) || (unitPrice * qty);
+            const unit = item.unit || 'unit';
+
+            const thumbHtml = item.productImageUrl
+                ? `<img src="${escHtml(item.productImageUrl)}" class="order-item-thumb" alt="${escHtml(item.productName || '')}" onerror="this.outerHTML='<div class=\\'order-item-thumb-placeholder\\'>🌾</div>'">`
+                : `<div class="order-item-thumb-placeholder">🌾</div>`;
+
+            const isDelivered = (o.status || '').toUpperCase() === 'DELIVERED';
+            return `
+            <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                <div class="d-flex align-items-center gap-2">
+                    ${thumbHtml}
+                    <div>
+                        <div class="fw-semibold text-dark">${escHtml(item.productName || 'Produce')}</div>
+                        <div class="small text-muted">
+                            ${item.productCategory ? `<span class="badge bg-light text-muted border me-1">${escHtml(item.productCategory)}</span>` : ''}
+                            ${qty} ${escHtml(unit)} &times; ${formatCurrency(unitPrice)}
+                        </div>
+                    </div>
+                </div>
+                <div class="text-end d-flex align-items-center gap-2">
+                    <span class="fw-bold text-dark">${formatCurrency(subtotal)}</span>
+                    ${isDelivered && item.productId ? `
+                    <a href="customer-reviews.html?productId=${item.productId}" class="btn btn-outline-warning btn-sm py-0 px-2 fw-semibold text-dark" title="Rate this harvest">
+                        <i class="bi bi-star-fill text-warning"></i> Rate
+                    </a>` : ''}
+                </div>
+            </div>`;
+        }).join('');
+
+        return `
+        <!-- Status & Date Header -->
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-4 p-3 bg-light rounded-3">
+            <div>
+                <span class="text-muted small d-block mb-1">Current Order Status</span>
+                ${statusBadgeHtml(o.status)}
+            </div>
+            <div class="text-end">
+                <span class="text-muted small d-block mb-1">Order Date</span>
+                <span class="fw-semibold text-dark">${formatDate(o.createdAt)}</span>
+            </div>
+        </div>
+
+        <!-- Ordered Produce Items -->
+        <div class="mb-4">
+            <div class="detail-section-title"><i class="bi bi-basket3 me-1 text-success"></i> Produce Items (${items.length})</div>
+            <div>${itemsHtml || '<p class="text-muted small fst-italic">No items found.</p>'}</div>
+        </div>
+
+        <!-- Payment & Pricing Details -->
+        <div class="mb-4">
+            <div class="detail-section-title"><i class="bi bi-credit-card me-1 text-success"></i> Payment Summary</div>
+            <div class="detail-kv">
+                <span class="dk">Payment Status</span>
+                <span class="dv">${paymentStatusBadgeHtml(o.paymentStatus)}</span>
+            </div>
+            ${payment ? `
+            <div class="detail-kv">
+                <span class="dk">Payment Method</span>
+                <span class="dv">${escHtml(payment.method || 'UPI')} (Mock)</span>
+            </div>
+            <div class="detail-kv">
+                <span class="dk">Transaction Reference</span>
+                <span class="dv font-monospace small">${escHtml(payment.transactionReference || '—')}</span>
+            </div>
+            <div class="detail-kv">
+                <span class="dk">Payment Processed At</span>
+                <span class="dv">${formatDate(payment.paymentDate)}</span>
+            </div>
+            ` : ''}
+            <div class="detail-kv">
+                <span class="dk">Farm Dispatch Shipping</span>
+                <span class="dv text-success fw-bold">FREE</span>
+            </div>
+            <div class="detail-kv pt-2 mt-1" style="border-top: 2px solid #E5E7EB;">
+                <span class="dk fw-bold text-dark" style="font-size:1rem;">Grand Total</span>
+                <span class="dv fw-bold text-success" style="font-size:1.15rem;">${formatCurrency(o.totalAmount)}</span>
+            </div>
+        </div>
+
+        <!-- Delivery Information -->
+        <div class="mb-2">
+            <div class="detail-section-title"><i class="bi bi-geo-alt me-1 text-success"></i> Delivery Information</div>
+            <div class="detail-kv">
+                <span class="dk">Delivery Type</span>
+                <span class="dv">${escHtml(o.deliveryType || 'Standard Delivery')}</span>
+            </div>
+            <div class="detail-kv">
+                <span class="dk">Delivery Address</span>
+                <span class="dv">${escHtml(o.deliveryAddress || 'Standard Customer Address')}</span>
+            </div>
+            ${o.customerName ? `
+            <div class="detail-kv">
+                <span class="dk">Recipient</span>
+                <span class="dv">${escHtml(o.customerName)}</span>
+            </div>` : ''}
+            ${o.customerPhone ? `
+            <div class="detail-kv">
+                <span class="dk">Contact Phone</span>
+                <span class="dv">${escHtml(o.customerPhone)}</span>
+            </div>` : ''}
+        </div>`;
+    }
+
+    /* ──────────────────────────────────────────────
+       CANCEL ORDER
+    ─────────────────────────────────────────────── */
+    function initCancelOrder(orderId) {
+        pendingCancelId = orderId;
+        const text = document.getElementById('cancelConfirmText');
+        if (text) {
+            text.textContent = `Order #${orderId} will be cancelled immediately. Produce quantities will be restored back to the farmer's available stock.`;
+        }
+        const modalEl = document.getElementById('cancelConfirmModal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    }
+
+    async function executeCancelOrder() {
+        if (!pendingCancelId) return;
+
+        const btn     = document.getElementById('confirmCancelBtn');
+        const spinner = document.getElementById('cancelBtnSpinner');
+
+        btn.disabled = true;
+        if (spinner) spinner.classList.remove('d-none');
+
+        try {
+            // PUT /api/orders/{id}/cancel?customerId={customerId}
+            const res = await apiPut(`/api/orders/${pendingCancelId}/cancel?customerId=${currentUser.id}`);
+
+            // Close confirmation modal
+            const modalEl = document.getElementById('cancelConfirmModal');
+            const modalInst = bootstrap.Modal.getInstance(modalEl);
+            if (modalInst) modalInst.hide();
+
+            if (res.ok) {
+                const msg = (res.data && res.data.message) || `Order #${pendingCancelId} cancelled successfully.`;
+                showAlert('success', msg);
+                // Reload full list from backend – source of truth
+                await loadOrders();
+            } else {
+                const errMsg = res.data && (res.data.error || res.data.message || JSON.stringify(res.data));
+                showAlert('danger', `Could not cancel order: ${errMsg || `Server returned ${res.status}`}`);
+            }
+        } catch (err) {
+            console.error('[Orders] executeCancelOrder error:', err);
+            showAlert('danger', 'Network error. Could not complete cancellation.');
+        } finally {
+            btn.disabled = false;
+            if (spinner) spinner.classList.add('d-none');
+            pendingCancelId = null;
+        }
+    }
+
+    // Expose functions for inline handlers
+    window.showOrderDetail  = showOrderDetail;
+    window.initCancelOrder  = initCancelOrder;
+    window.executeCancelOrder = executeCancelOrder;
+    window.filterByStatus   = filterByStatus;
+    window.filterOrders     = filterOrders;
+    </script>
+</body>
+</html>

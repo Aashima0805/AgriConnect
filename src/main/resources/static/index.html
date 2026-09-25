@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgriConnect - Unified Farmer-Customer Platform</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- Custom Agriculture Theme CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <!-- Top Navigation -->
+    <nav class="navbar navbar-expand-lg agri-navbar sticky-top">
+        <div class="container">
+            <a class="navbar-brand agri-brand" href="index.html">
+                <i class="bi bi-flower1"></i> AgriConnect <span>🌱</span>
+            </a>
+            <button class="navbar-toggler text-white" type="button" data-bs-toggle="collapse" data-bs-target="#navContent">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navContent">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-lg-center gap-2">
+                    <li class="nav-item"><a class="nav-link agri-nav-link" href="#features">Features</a></li>
+                    <li class="nav-item"><a class="nav-link agri-nav-link" href="#roles">Platform Roles</a></li>
+                    <li class="nav-item"><a class="nav-link agri-nav-link" href="#ai-tech">YOLO11n AI</a></li>
+                    <li class="nav-item"><a class="nav-link btn-agri-outline px-3 text-white border-white" href="login.html"><i class="bi bi-box-arrow-in-right"></i> Sign In</a></li>
+                    <li class="nav-item"><a class="btn btn-warning fw-bold px-3" href="register.html"><i class="bi bi-person-plus-fill"></i> Join AgriConnect</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Agriculture Hero Section -->
+    <section class="agri-hero text-center">
+        <div class="container">
+            <span class="badge bg-success bg-opacity-75 text-white px-3 py-2 rounded-pill mb-3 text-uppercase fw-bold letter-spacing-1">
+                <i class="bi bi-shield-check"></i> Academic Capstone Prototype
+            </span>
+            <h1 class="display-4 fw-bolder mb-3">Empowering Farmers, Enriching Communities</h1>
+            <p class="lead mx-auto mb-4">
+                A unified agricultural technology ecosystem bridging Farmers, Customers, Community Donors, and Administrators.
+                Equipped with fair marketplace trade, machinery sharing, and <strong>genuine YOLO11n AI Rice Leaf Disease Detection</strong>.
+            </p>
+            <div class="d-flex justify-content-center gap-3 flex-wrap">
+                <a href="login.html" class="btn btn-success btn-lg px-4 py-2 fw-bold shadow">
+                    <i class="bi bi-speedometer2"></i> Explore Dashboards
+                </a>
+                <a href="register.html" class="btn btn-outline-light btn-lg px-4 py-2 fw-semibold">
+                    <i class="bi bi-person-plus"></i> Create Account
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Platform Roles Section -->
+    <section class="container py-5" id="roles">
+        <div class="text-center mb-5">
+            <span class="text-success fw-bold text-uppercase">Ecosystem</span>
+            <h2 class="fw-bold text-dark">One Platform, Four Collaborative Roles</h2>
+            <p class="text-muted">Built from ground up to support every participant in the sustainable agricultural value chain.</p>
+        </div>
+
+        <div class="row g-4">
+            <!-- Farmer Card -->
+            <div class="col-md-6 col-lg-3">
+                <div class="agri-card h-100 p-4 text-center">
+                    <div class="stat-icon mx-auto mb-3 text-success">
+                        <i class="bi bi-person-workspace"></i>
+                    </div>
+                    <h4 class="fw-bold">🌾 Farmer</h4>
+                    <p class="text-muted small">Manage farm profile, list agricultural produce, rent machinery, inspect weather, post distress grievances, and receive customer reviews.</p>
+                    <span class="badge bg-success-subtle text-success mt-auto py-2">Producers</span>
+                </div>
+            </div>
+
+            <!-- Customer Card -->
+            <div class="col-md-6 col-lg-3">
+                <div class="agri-card h-100 p-4 text-center">
+                    <div class="stat-icon mx-auto mb-3 text-primary">
+                        <i class="bi bi-cart3"></i>
+                    </div>
+                    <h4 class="fw-bold">🛒 Customer</h4>
+                    <p class="text-muted small">Browse authentic farmer harvests, enjoy transparent pricing without middlemen, place orders with simulated payments, track delivery stages, and rate farmers.</p>
+                    <span class="badge bg-primary-subtle text-primary mt-auto py-2">Buyers</span>
+                </div>
+            </div>
+
+            <!-- Donor Card -->
+            <div class="col-md-6 col-lg-3">
+                <div class="agri-card h-100 p-4 text-center">
+                    <div class="stat-icon mx-auto mb-3 text-danger">
+                        <i class="bi bi-heart-pulse"></i>
+                    </div>
+                    <h4 class="fw-bold">💚 Donor</h4>
+                    <p class="text-muted small">Support farmers facing natural catastrophes (floods, droughts, crop pests) through community funding with live target progress tracking and transaction receipts.</p>
+                    <span class="badge bg-danger-subtle text-danger mt-auto py-2">Philanthropy</span>
+                </div>
+            </div>
+
+            <!-- Admin Card -->
+            <div class="col-md-6 col-lg-3">
+                <div class="agri-card h-100 p-4 text-center">
+                    <div class="stat-icon mx-auto mb-3 text-secondary">
+                        <i class="bi bi-sliders"></i>
+                    </div>
+                    <h4 class="fw-bold">⚙️ Admin</h4>
+                    <p class="text-muted small">Supervise platform operations, audit user accounts, monitor produce catalogs, review distress assistance requests, and review statistical breakdowns.</p>
+                    <span class="badge bg-secondary-subtle text-secondary mt-auto py-2">Governance</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- AI Technology Highlight Section -->
+    <section class="py-5 bg-white border-top border-bottom" id="ai-tech">
+        <div class="container">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6">
+                    <span class="badge bg-success px-3 py-2 rounded-pill text-uppercase mb-3">Ultralytics YOLO11n</span>
+                    <h2 class="fw-bold text-dark">Real AI Rice Leaf Disease Detection</h2>
+                    <p class="text-muted">
+                        No fake keyword predictions or placeholder rules. AgriConnect pairs its Spring Boot backend with a dedicated Python AI microservice loading the fine-tuned <strong>YOLO11n</strong> rice disease model (<code>best.pt</code>).
+                    </p>
+                    <div class="d-flex flex-column gap-2 mb-4">
+                        <div class="d-flex align-items-center gap-2 text-dark fw-semibold">
+                            <i class="bi bi-check-circle-fill text-success"></i> 6 Trained Classes: Bacterial Leaf Blight, Brown Spot, Healthy, Leaf Blast, Leaf scald, Narrow Brown Spot
+                        </div>
+                        <div class="d-flex align-items-center gap-2 text-dark fw-semibold">
+                            <i class="bi bi-check-circle-fill text-success"></i> Strict Confidence Scoring & Verification (Threshold: 50%)
+                        </div>
+                        <div class="d-flex align-items-center gap-2 text-dark fw-semibold">
+                            <i class="bi bi-check-circle-fill text-success"></i> Agronomic Advisory: Symptoms, Organic & Chemical Treatments, Prevention
+                        </div>
+                    </div>
+                    <a href="login.html" class="btn btn-agri-primary">
+                        <i class="bi bi-camera-fill"></i> Try Crop Disease Doctor
+                    </a>
+                </div>
+                <div class="col-lg-6">
+                    <div class="agri-card p-4 shadow-lg border-2 border-success-subtle">
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h5 class="fw-bold text-dark m-0"><i class="bi bi-cpu text-success"></i> YOLO11n Inference Engine</h5>
+                            <span class="badge bg-success">best.pt Active</span>
+                        </div>
+                        <div class="preview-container mb-3" style="max-height: 220px;">
+                            <img src="https://images.unsplash.com/photo-1530595467537-0b5996c41f2d?w=800&auto=format&fit=crop" alt="Rice Field">
+                        </div>
+                        <div class="bg-light p-3 rounded-3 small">
+                            <div class="d-flex justify-content-between mb-1">
+                                <span class="fw-bold">Prediction:</span>
+                                <span class="text-success fw-bold">Brown Spot (Bipolaris oryzae)</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="fw-bold">Model Confidence:</span>
+                                <span class="badge bg-success">91.4%</span>
+                            </div>
+                            <div class="text-muted fst-italic">
+                                "AI-based prediction for academic prototype. Not a substitute for professional agricultural laboratory diagnosis."
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quick Demo Accounts -->
+    <section class="container py-5">
+        <div class="agri-card p-4 p-md-5 bg-light border-0 shadow">
+            <div class="row align-items-center g-4">
+                <div class="col-lg-7">
+                    <h3 class="fw-bold text-dark mb-2">Ready to Test AgriConnect?</h3>
+                    <p class="text-muted mb-3">Pre-configured demo credentials are seeded in the database for immediate demonstration without registration.</p>
+                    <div class="row g-2 small">
+                        <div class="col-sm-6"><strong>🌾 Farmer:</strong> farmer@agriconnect.com / <code>farmer123</code></div>
+                        <div class="col-sm-6"><strong>🛒 Customer:</strong> customer@agriconnect.com / <code>customer123</code></div>
+                        <div class="col-sm-6"><strong>💚 Donor:</strong> donor@agriconnect.com / <code>donor123</code></div>
+                        <div class="col-sm-6"><strong>⚙️ Admin:</strong> admin@agriconnect.com / <code>admin123</code></div>
+                    </div>
+                </div>
+                <div class="col-lg-5 text-lg-end">
+                    <a href="login.html" class="btn btn-success btn-lg px-4 py-2 fw-bold me-2">
+                        <i class="bi bi-box-arrow-in-right"></i> Sign In Now
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="agri-footer">
+        <div class="container text-center">
+            <p class="mb-1 fw-bold text-white"><i class="bi bi-flower1 text-success"></i> AgriConnect - Unified Farmer-Customer Platform</p>
+            <p class="small text-muted mb-0">Academic Capstone Web Project • Built with Spring Boot, MySQL, Bootstrap 5 & YOLO11n AI</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

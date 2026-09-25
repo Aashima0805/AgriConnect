@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Dashboard - AgriConnect</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<style>
+.admin-card{border:1px solid var(--agri-border);border-radius:14px;background:#fff;box-shadow:var(--agri-shadow-sm)}.admin-card .table{margin-bottom:0}.section-anchor{scroll-margin-top:90px}.mini-stat{border-left:4px solid #2E7D32}.table th{white-space:nowrap}
+</style>
+</head>
+<body>
+<div id="navbar-container"></div>
+<main class="container py-4">
+<section class="welcome-hero mb-4" style="border-left-color:#5E35B1"><div class="d-flex justify-content-between align-items-center flex-wrap gap-3"><div><span class="badge bg-secondary-subtle text-secondary px-3 py-1 rounded-pill mb-2">Governance Workspace</span><h1 class="welcome-title" id="welcomeTitle">Welcome, Admin</h1><p class="welcome-desc mb-0">Manage users, marketplace activity, orders, farmer support, donations, equipment, reviews and platform reports.</p></div><button class="btn btn-light border" onclick="loadAll()"><i class="bi bi-arrow-clockwise"></i> Refresh Dashboard</button></div></section>
+<div id="alertArea"></div>
+<section class="row g-3 mb-5" id="statsGrid"><div class="col-6 col-lg-3"><div class="stat-card mini-stat"><span class="stat-label">Users</span><div class="stat-value" id="sUsers">--</div><div class="stat-subtext" id="sRoles">Loading...</div></div></div><div class="col-6 col-lg-3"><div class="stat-card mini-stat"><span class="stat-label">Products</span><div class="stat-value" id="sProducts">--</div><div class="stat-subtext">Marketplace listings</div></div></div><div class="col-6 col-lg-3"><div class="stat-card mini-stat"><span class="stat-label">Orders</span><div class="stat-value" id="sOrders">--</div><div class="stat-subtext">Customer orders</div></div></div><div class="col-6 col-lg-3"><div class="stat-card mini-stat"><span class="stat-label">Relief Funds</span><div class="stat-value text-danger" id="sFunds">₹--</div><div class="stat-subtext" id="sDonationCount">-- donations</div></div></div></section>
+<section id="users-section" class="section-anchor mb-5"><div class="section-header"><h2 class="section-title"><i class="bi bi-people text-primary"></i> Users</h2><button class="btn btn-outline-primary btn-sm" onclick="loadUsers()">Refresh</button></div><div class="admin-card"><div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>ID</th><th>Name</th><th>Email</th><th>Phone</th><th>Role</th><th>Address</th></tr></thead><tbody id="usersBody"><tr><td colspan="6" class="text-center py-4">Loading...</td></tr></tbody></table></div></div></section>
+<section id="products-section" class="section-anchor mb-5"><div class="section-header"><h2 class="section-title"><i class="bi bi-basket text-success"></i> Products</h2><button class="btn btn-outline-success btn-sm" onclick="loadProducts()">Refresh</button></div><div class="admin-card"><div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>ID</th><th>Produce</th><th>Category</th><th>Farmer</th><th>Price</th><th>Stock</th><th>Action</th></tr></thead><tbody id="productsBody"><tr><td colspan="7" class="text-center py-4">Loading...</td></tr></tbody></table></div></div></section>
+<section id="orders-section" class="section-anchor mb-5"><div class="section-header"><h2 class="section-title"><i class="bi bi-receipt text-info"></i> Orders</h2><button class="btn btn-outline-info btn-sm" onclick="loadOrders()">Refresh</button></div><div class="admin-card"><div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>ID</th><th>Customer</th><th>Total</th><th>Status</th><th>Payment</th><th>Date</th></tr></thead><tbody id="ordersBody"><tr><td colspan="6" class="text-center py-4">Loading...</td></tr></tbody></table></div></div></section>
+<section id="grievances-section" class="section-anchor mb-5"><div class="section-header"><h2 class="section-title"><i class="bi bi-chat-heart text-danger"></i> Grievances</h2><button class="btn btn-outline-danger btn-sm" onclick="loadGrievances()">Refresh</button></div><div class="admin-card"><div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>Title</th><th>Farmer</th><th>Category</th><th>Target</th><th>Received</th><th>Status</th><th>Update</th></tr></thead><tbody id="grievancesBody"><tr><td colspan="7" class="text-center py-4">Loading...</td></tr></tbody></table></div></div></section>
+<section id="donations-section" class="section-anchor mb-5"><div class="section-header"><h2 class="section-title"><i class="bi bi-cash-stack text-success"></i> Donations</h2><button class="btn btn-outline-success btn-sm" onclick="loadDonations()">Refresh</button></div><div class="admin-card"><div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>Receipt</th><th>Donor</th><th>Cause</th><th>Farmer</th><th>Amount</th><th>Status</th><th>Date</th></tr></thead><tbody id="donationsBody"><tr><td colspan="7" class="text-center py-4">Loading...</td></tr></tbody></table></div></div></section>
+<section id="equipment-section" class="section-anchor mb-5"><div class="section-header"><h2 class="section-title"><i class="bi bi-truck text-warning"></i> Equipment</h2><button class="btn btn-outline-warning btn-sm" onclick="loadEquipment()">Refresh</button></div><div class="admin-card"><div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>ID</th><th>Name</th><th>Type</th><th>Owner</th><th>Rate</th><th>Location</th><th>Status</th><th>Action</th></tr></thead><tbody id="equipmentBody"><tr><td colspan="8" class="text-center py-4">Loading...</td></tr></tbody></table></div></div></section>
+<section id="reviews-section" class="section-anchor mb-5"><div class="section-header"><h2 class="section-title"><i class="bi bi-star text-warning"></i> Review Moderation</h2><button class="btn btn-outline-warning btn-sm" onclick="loadReviews()">Refresh</button></div><div class="admin-card"><div class="table-responsive"><table class="table table-hover align-middle"><thead><tr><th>Product</th><th>Customer</th><th>Rating</th><th>Comment</th><th>Date</th><th>Action</th></tr></thead><tbody id="reviewsBody"><tr><td colspan="6" class="text-center py-4">Loading...</td></tr></tbody></table></div></div></section>
+<section id="reports-section" class="section-anchor mb-5"><div class="section-header"><h2 class="section-title"><i class="bi bi-bar-chart text-purple"></i> Reports</h2><button class="btn btn-outline-secondary btn-sm" onclick="loadReports()">Refresh</button></div><div id="reportsArea"></div></section>
+</main>
+<footer class="agri-footer mt-auto"><div class="container text-center"><p class="mb-0 small text-white-50">AgriConnect • Administrative Governance Console</p></div></footer>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script><script src="auth.js"></script>
+<script>
+const esc = s => s == null ? '' : String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+
+let user = null;
+
+const api = (path, options = {}) => {
+    return fetch(
+        path + (path.includes('?') ? '&' : '?') +
+        'userId=' + encodeURIComponent(user.id),
+        {
+            credentials: 'include',
+            ...options
+        }
+    ).then(async r => {
+        let d = {};
+
+        try {
+            d = await r.json();
+        } catch {}
+
+        if (!r.ok) {
+            throw new Error(
+                d.error ||
+                d.message ||
+                `Request failed (${r.status})`
+            );
+        }
+
+        return d;
+    });
+};
+
+function showAlert(msg, error = true) {
+    document.getElementById('alertArea').innerHTML = `
+        <div class="alert ${error ? 'alert-danger' : 'alert-success'} alert-dismissible fade show">
+            ${esc(msg)}
+            <button class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+}
+
+const requiredUser = AgriAuth.requireAuth('ADMIN');
+
+if (requiredUser) {
+    user = requiredUser;
+
+    AgriAuth.renderNavbar('navbar-container', 'dashboard');
+
+    document.getElementById('welcomeTitle').textContent =
+        'Welcome, ' + (user.name || 'Admin');
+
+    loadAll();
+}
+
+async function loadAll() {
+    await Promise.all([
+        loadStats(),
+        loadUsers(),
+        loadProducts(),
+        loadOrders(),
+        loadGrievances(),
+        loadDonations(),
+        loadEquipment(),
+        loadReviews(),
+        loadReports()
+    ]);
+}
+
+async function loadStats() {
+    try {
+        const s = await api('/api/admin/dashboard');
+
+        document.getElementById('sUsers').textContent =
+            s.totalUsers ?? 0;
+
+        document.getElementById('sRoles').textContent =
+            `${s.totalFarmers || 0} farmers • ${s.totalCustomers || 0} customers • ${s.totalDonors || 0} donors`;
+
+        document.getElementById('sProducts').textContent =
+            s.totalProducts ?? 0;
+
+        document.getElementById('sOrders').textContent =
+            s.totalOrders ?? 0;
+
+        document.getElementById('sFunds').textContent =
+            '₹' + Number(s.totalDonationAmount || 0).toFixed(2);
+
+        document.getElementById('sDonationCount').textContent =
+            (s.totalDonations || 0) + ' donations';
+
+    } catch (e) {
+        showAlert(e.message);
+    }
+}
+
+async function loadUsers(){
+    const b=document.getElementById('usersBody');
+    try{
+        const list=await api('/api/admin/users');
+        b.innerHTML=list.length
+            ? list.map(u=>`<tr>
+                <td>${u.id}</td>
+                <td class="fw-semibold">${esc(u.name)}</td>
+                <td>${esc(u.email)}</td>
+                <td>${esc(u.phone||'--')}</td>
+                <td><span class="badge ${u.role==='FARMER'?'bg-success':u.role==='CUSTOMER'?'bg-primary':u.role==='DONOR'?'bg-danger':'bg-secondary'}">${esc(u.role)}</span></td>
+                <td>${esc(u.address||'--')}</td>
+            </tr>`).join('')
+            : '<tr><td colspan="6" class="text-center py-4 text-muted">No users found.</td></tr>';
+    }catch(e){
+        b.innerHTML=`<tr><td colspan="6" class="text-danger text-center py-4">${esc(e.message)}</td></tr>`;
+    }
+}
+
+async function loadProducts(){
+    const b=document.getElementById('productsBody');
+    try{
+        const list=await api('/api/admin/products');
+        b.innerHTML=list.length
+            ? list.map(p=>`<tr>
+                <td>${p.id}</td>
+                <td class="fw-semibold">${esc(p.name)}</td>
+                <td>${esc(p.category||'--')}</td>
+                <td>${esc(p.farmer?.name||'Farmer')}</td>
+                <td class="fw-bold text-success">₹${p.price}/${esc(p.unit)}</td>
+                <td>${p.quantity} ${esc(p.unit)}</td>
+                <td><button class="btn btn-outline-danger btn-sm" onclick="deleteProduct(${p.id})"><i class="bi bi-trash"></i></button></td>
+            </tr>`).join('')
+            : '<tr><td colspan="7" class="text-center py-4 text-muted">No products found.</td></tr>';
+    }catch(e){
+        b.innerHTML=`<tr><td colspan="7" class="text-danger text-center py-4">${esc(e.message)}</td></tr>`;
+    }
+}
+
+async function deleteProduct(id){
+    if(!confirm('Remove this product listing?')) return;
+    try{
+        await api('/api/admin/products/'+id,{method:'DELETE'});
+        showAlert('Product removed successfully.',false);
+        loadProducts();
+        loadStats();
+    }catch(e){
+        showAlert(e.message);
+    }
+}
+
+
+
+async function loadOrders(){
+    const b=document.getElementById('ordersBody');
+
+    try{
+        const list=await api('/api/admin/orders');
+
+        b.innerHTML=list.length
+            ? list.map(o=>`<tr>
+                <td>#${o.id}</td>
+                <td>${esc(o.customer?.name||'Customer')}</td>
+                <td class="fw-bold text-success">₹${Number(o.totalAmount||0).toFixed(2)}</td>
+                <td>
+                    <span class="badge bg-light text-dark border">
+                        ${esc((o.status||'--').replaceAll('_',' '))}
+                    </span>
+                </td>
+                <td>${esc(o.paymentStatus||'--')}</td>
+                <td class="small">
+                    ${o.createdAt
+                        ? new Date(o.createdAt).toLocaleDateString()
+                        : '--'}
+                </td>
+            </tr>`).join('')
+            : '<tr><td colspan="6" class="text-center py-4 text-muted">No orders found.</td></tr>';
+
+    }catch(e){
+        b.innerHTML=`<tr><td colspan="6" class="text-danger text-center py-4">${esc(e.message)}</td></tr>`;
+    }
+}
+
+
+
+const grievanceStatuses=['OPEN','PARTIALLY_FUNDED','FUNDED','CLOSED'];
+
+async function loadGrievances(){
+    const b=document.getElementById('grievancesBody');
+    try{
+        const list=await api('/api/admin/grievances');
+        b.innerHTML=list.length
+            ? list.map(g=>`<tr>
+                <td class="fw-semibold">${esc(g.title)}</td>
+                <td>${esc(g.farmer?.name||g.farmerName||'Farmer')}</td>
+                <td>${esc(g.category||'--')}</td>
+                <td>₹${Number(g.targetAmount||0).toFixed(2)}</td>
+                <td>₹${Number(g.receivedAmount||0).toFixed(2)}</td>
+                <td><span class="badge bg-light text-dark border">${esc(g.status)}</span></td>
+                <td>
+                    <select class="form-select form-select-sm" onchange="updateGrievanceStatus(${g.id},this.value)">
+                        <option value="">Update...</option>
+                        ${grievanceStatuses.map(s=>`<option value="${s}" ${s===g.status?'selected':''}>${s.replaceAll('_',' ')}</option>`).join('')}
+                    </select>
+                </td>
+            </tr>`).join('')
+            : '<tr><td colspan="7" class="text-center py-4 text-muted">No grievances found.</td></tr>';
+    }catch(e){
+        b.innerHTML=`<tr><td colspan="7" class="text-danger text-center py-4">${esc(e.message)}</td></tr>`;
+    }
+}
+
+async function updateGrievanceStatus(id,status){
+    if(!status) return;
+    try{
+        await api('/api/admin/grievances/'+id+'/status',{
+            method:'PUT',
+            headers:{'Content-Type':'application/json'},
+            body:JSON.stringify({status})
+        });
+        showAlert('Grievance status updated.',false);
+        loadGrievances();
+        loadStats();
+    }catch(e){
+        showAlert(e.message);
+        loadGrievances();
+    }
+}
+
+async function loadDonations(){
+    const b=document.getElementById('donationsBody');
+    try{
+        const list=await api('/api/admin/donations');
+        b.innerHTML=list.length
+            ? list.map(d=>`<tr>
+                <td class="fw-semibold text-danger">${esc(d.receiptNumber||'--')}</td>
+                <td>${esc(d.donorName||'Donor')}</td>
+                <td>${esc(d.grievanceTitle||'--')}</td>
+                <td>${esc(d.farmerName||'Farmer')}</td>
+                <td class="fw-bold text-success">₹${Number(d.amount||0).toFixed(2)}</td>
+                <td>${esc(d.paymentStatus||'--')}</td>
+                <td class="small">${d.donatedAt?new Date(d.donatedAt).toLocaleString():'--'}</td>
+            </tr>`).join('')
+            : '<tr><td colspan="7" class="text-center py-4 text-muted">No donations found.</td></tr>';
+    }catch(e){
+        b.innerHTML=`<tr><td colspan="7" class="text-danger text-center py-4">${esc(e.message)}</td></tr>`;
+    }
+}
+
+async function loadEquipment(){
+    const b=document.getElementById('equipmentBody');
+    try{
+        const list=await api('/api/admin/equipment');
+        b.innerHTML=list.length
+            ? list.map(e=>`<tr>
+                <td>${e.id}</td>
+                <td class="fw-semibold">${esc(e.name)}</td>
+                <td>${esc(e.type||'--')}</td>
+                <td>${esc(e.owner?.name||'Farmer')}</td>
+                <td>₹${Number(e.rentalPricePerDay||0).toFixed(2)}/day</td>
+                <td>${esc(e.location||'--')}</td>
+                <td>${e.available?'<span class="badge bg-success">Available</span>':'<span class="badge bg-secondary">Busy</span>'}</td>
+                <td><button class="btn btn-outline-danger btn-sm" onclick="deleteEquipment(${e.id})"><i class="bi bi-trash"></i></button></td>
+            </tr>`).join('')
+            : '<tr><td colspan="8" class="text-center py-4 text-muted">No equipment found.</td></tr>';
+    }catch(e){
+        b.innerHTML=`<tr><td colspan="8" class="text-danger text-center py-4">${esc(e.message)}</td></tr>`;
+    }
+}
+
+async function deleteEquipment(id){
+    if(!confirm('Remove this equipment listing?')) return;
+    try{
+        await api('/api/admin/equipment/'+id,{method:'DELETE'});
+        showAlert('Equipment removed successfully.',false);
+        loadEquipment();
+        loadStats();
+    }catch(e){
+        showAlert(e.message);
+    }
+}
+
+async function loadReviews(){
+    const b=document.getElementById('reviewsBody');
+    try{
+        const list=await api('/api/admin/reviews');
+        b.innerHTML=list.length
+            ? list.map(r=>`<tr>
+                <td>${esc(r.productName||r.product?.name||'Product')}</td>
+                <td>${esc(r.customerName||r.customer?.name||'Customer')}</td>
+                <td><span class="text-warning">${'★'.repeat(Number(r.rating||0))}</span> <span class="small text-muted">${r.rating||0}/5</span></td>
+                <td class="small" style="max-width:300px">${esc(r.comment||'--')}</td>
+                <td class="small">${r.createdAt?new Date(r.createdAt).toLocaleDateString():'--'}</td>
+                <td><button class="btn btn-outline-danger btn-sm" onclick="deleteReview(${r.id})"><i class="bi bi-trash"></i></button></td>
+            </tr>`).join('')
+            : '<tr><td colspan="6" class="text-center py-4 text-muted">No reviews found.</td></tr>';
+    }catch(e){
+        b.innerHTML=`<tr><td colspan="6" class="text-danger text-center py-4">${esc(e.message)}</td></tr>`;
+    }
+}
+
+async function deleteReview(id){
+    if(!confirm('Remove this review?')) return;
+    try{
+        await api('/api/admin/reviews/'+id,{method:'DELETE'});
+        showAlert('Review removed successfully.',false);
+        loadReviews();
+    }catch(e){
+        showAlert(e.message);
+    }
+}
+
+async function loadReports(){
+    const area=document.getElementById('reportsArea');
+    try{
+        const r=await api('/api/admin/reports');
+
+        area.innerHTML=`
+            <div class="row g-4">
+                <div class="col-md-6">
+                    <div class="admin-card p-4">
+                        <h5 class="fw-bold">Users by Role</h5>
+                        ${Object.entries(r.usersByRole||{}).map(([k,v])=>`
+                            <div class="d-flex justify-content-between border-bottom py-2">
+                                <span>${esc(k)}</span>
+                                <strong>${v}</strong>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="admin-card p-4">
+                        <h5 class="fw-bold">Orders by Status</h5>
+                        ${Object.entries(r.ordersByStatus||{}).map(([k,v])=>`
+                            <div class="d-flex justify-content-between border-bottom py-2">
+                                <span>${esc(k)}</span>
+                                <strong>${v}</strong>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="admin-card p-4">
+                        <h5 class="fw-bold">Products by Category</h5>
+                        ${Object.entries(r.productsByCategory||{}).map(([k,v])=>`
+                            <div class="d-flex justify-content-between border-bottom py-2">
+                                <span>${esc(k)}</span>
+                                <strong>${v}</strong>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="admin-card p-4">
+                        <h5 class="fw-bold">Community Relief</h5>
+                        <div class="display-6 fw-bold text-danger">₹${Number(r.totalDonations||0).toFixed(2)}</div>
+                        <div class="text-muted small">
+                            ${r.totalDonationCount||0} donation records • ${r.totalGrievances||0} grievances
+                        </div>
+                    </div>
+                </div>
+            </div>`;
+    }catch(e){
+        area.innerHTML=`<div class="alert alert-danger">${esc(e.message)}</div>`;
+    }
+}
+</script>
+</body></html>

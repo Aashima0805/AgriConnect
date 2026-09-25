@@ -1,0 +1,958 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Track Order - AgriConnect</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- AgriConnect Design System -->
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* ── Order status badges ── */
+        .order-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            padding: 0.35rem 0.85rem;
+            border-radius: 999px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+        }
+        .status-PLACED           { background: #EFF6FF; color: #1D4ED8; border: 1px solid #BFDBFE; }
+        .status-CONFIRMED        { background: #F0FDF4; color: #15803D; border: 1px solid #BBF7D0; }
+        .status-PACKED           { background: #FEF3C7; color: #B45309; border: 1px solid #FDE68A; }
+        .status-SHIPPED          { background: #F5F3FF; color: #6D28D9; border: 1px solid #DDD6FE; }
+        .status-OUT_FOR_DELIVERY { background: #FFF7ED; color: #C2410C; border: 1px solid #FED7AA; }
+        .status-DELIVERED        { background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; }
+        .status-CANCELLED        { background: #FFF1F2; color: #BE123C; border: 1px solid #FECDD3; }
+
+        /* ── Payment status badges ── */
+        .payment-status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            padding: 0.2rem 0.55rem;
+            border-radius: 6px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .pay-PAID     { background: #DCFCE7; color: #166534; }
+        .pay-PENDING  { background: #FEF9C3; color: #854D0E; }
+        .pay-FAILED   { background: #FEE2E2; color: #991B1B; }
+
+        /* ── Visual Timeline Vertical / Stepper ── */
+        .timeline-container {
+            position: relative;
+            padding-left: 2.75rem;
+        }
+        .timeline-container::before {
+            content: '';
+            position: absolute;
+            top: 24px;
+            bottom: 24px;
+            left: 20px;
+            width: 3px;
+            background: #E5E7EB;
+            border-radius: 3px;
+        }
+        .timeline-step {
+            position: relative;
+            margin-bottom: 2rem;
+        }
+        .timeline-step:last-child {
+            margin-bottom: 0;
+        }
+        .timeline-icon-wrap {
+            position: absolute;
+            left: -2.75rem;
+            top: 0;
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: #fff;
+            border: 3px solid #E5E7EB;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            color: #9CA3AF;
+            z-index: 2;
+            transition: all 0.2s ease;
+        }
+        /* Completed Step */
+        .timeline-step.completed .timeline-icon-wrap {
+            background: #16A34A;
+            border-color: #16A34A;
+            color: #fff;
+            box-shadow: 0 0 0 4px #DCFCE7;
+        }
+        .timeline-step.completed .timeline-title {
+            color: #111827;
+        }
+        /* Current Active Step */
+        .timeline-step.current .timeline-icon-wrap {
+            background: #2563EB;
+            border-color: #2563EB;
+            color: #fff;
+            box-shadow: 0 0 0 5px #DBEAFE;
+            animation: pulse-ring 2s infinite;
+        }
+        @keyframes pulse-ring {
+            0%   { box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3); }
+            50%  { box-shadow: 0 0 0 8px rgba(37, 99, 235, 0.15); }
+            100% { box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.3); }
+        }
+        .timeline-step.current .timeline-title {
+            color: #1D4ED8;
+            font-weight: 700;
+        }
+        .timeline-step.current .timeline-card {
+            border-color: #93C5FD;
+            background: #F8FAFC;
+        }
+        /* Pending Step */
+        .timeline-step.pending .timeline-title {
+            color: #9CA3AF;
+        }
+        .timeline-step.pending .timeline-desc {
+            color: #9CA3AF;
+        }
+        /* Cancelled Step */
+        .timeline-step.cancelled-step .timeline-icon-wrap {
+            background: #E11D48;
+            border-color: #E11D48;
+            color: #fff;
+            box-shadow: 0 0 0 4px #FFE4E6;
+        }
+
+        .timeline-card {
+            background: #fff;
+            border: 1px solid #E5E7EB;
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+            transition: border-color 0.15s ease;
+        }
+        .timeline-title {
+            font-size: 0.98rem;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        .timeline-desc {
+            font-size: 0.85rem;
+            color: #6B7280;
+            margin-bottom: 0;
+        }
+        .timeline-time {
+            font-size: 0.78rem;
+            font-weight: 500;
+            color: #6B7280;
+        }
+
+        /* ── Info summary cards ── */
+        .info-card {
+            background: #fff;
+            border: 1px solid #E5E7EB;
+            border-radius: 16px;
+            padding: 1.5rem;
+            height: 100%;
+        }
+        .info-card-header {
+            font-size: 0.85rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: #4B5563;
+            margin-bottom: 1rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #F3F4F6;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            padding: 0.45rem 0;
+            border-bottom: 1px solid #F9FAFB;
+            font-size: 0.88rem;
+        }
+        .info-row:last-child { border-bottom: none; }
+        .info-label { color: #6B7280; font-weight: 500; }
+        .info-value { color: #111827; font-weight: 600; text-align: right; max-width: 60%; word-break: break-word; }
+
+        /* ── Items preview table / list ── */
+        .order-item-thumb {
+            width: 44px;
+            height: 44px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #E5E7EB;
+            flex-shrink: 0;
+            background: #F9FAFB;
+        }
+        .order-item-thumb-placeholder {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            border: 1px solid #E5E7EB;
+            background: #F0FDF4;
+            color: #16A34A;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        /* ── Loading Skeleton ── */
+        .skeleton {
+            background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: 8px;
+        }
+        @keyframes shimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* ── Error state card ── */
+        .tracking-error-card {
+            background: #fff;
+            border: 1px solid #E5E7EB;
+            border-radius: 16px;
+            padding: 3.5rem 1.5rem;
+            text-align: center;
+            max-width: 540px;
+            margin: 2rem auto;
+        }
+        .error-icon-ring {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: #FFF1F2;
+            color: #E11D48;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            margin: 0 auto 1.25rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================
+         NAVBAR
+    ============================= -->
+    <nav class="navbar navbar-expand-lg agri-navbar sticky-top">
+        <div class="container">
+            <a class="navbar-brand agri-brand" href="customer-dashboard.html">
+                <i class="bi bi-flower1"></i> AgriConnect
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#trackingNav" aria-controls="trackingNav"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="trackingNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link agri-nav-link" href="customer-dashboard.html">
+                            <i class="bi bi-grid"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link agri-nav-link" href="customer-marketplace.html">
+                            <i class="bi bi-shop"></i> Marketplace
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link agri-nav-link" href="customer-nearby.html">
+                            <i class="bi bi-geo-alt"></i> Nearby Farmers
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link agri-nav-link" href="customer-cart.html">
+                            <i class="bi bi-cart3"></i> Cart
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link agri-nav-link active" href="customer-orders.html">
+                            <i class="bi bi-receipt-cutoff"></i> Orders
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link agri-nav-link" href="customer-reviews.html">
+                            <i class="bi bi-star"></i> Reviews
+                        </a>
+                    </li>
+                </ul>
+                <div id="navUserArea" class="d-flex align-items-center gap-3 flex-wrap"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ============================
+         PAGE HEADER
+    ============================= -->
+    <div class="bg-white border-bottom py-3 mb-4">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <a href="customer-orders.html" class="btn btn-outline-secondary btn-sm" title="Back to My Orders">
+                        <i class="bi bi-arrow-left"></i>
+                    </a>
+                    <div>
+                        <nav aria-label="breadcrumb">
+                            <ol class="breadcrumb mb-1 small">
+                                <li class="breadcrumb-item"><a href="customer-dashboard.html" class="text-success text-decoration-none">Dashboard</a></li>
+                                <li class="breadcrumb-item"><a href="customer-orders.html" class="text-success text-decoration-none">My Orders</a></li>
+                                <li class="breadcrumb-item active" id="breadcrumbOrderId">Track Order</li>
+                            </ol>
+                        </nav>
+                        <h2 class="fw-bold text-dark m-0 d-flex align-items-center gap-2">
+                            <i class="bi bi-truck text-success"></i> <span id="pageHeaderTitle">Order Tracking</span>
+                        </h2>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2" id="headerActions">
+                    <button type="button" class="btn btn-outline-success btn-sm" onclick="loadTrackingData()">
+                        <i class="bi bi-arrow-clockwise me-1"></i> Refresh Status
+                    </button>
+                    <a href="customer-orders.html" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-receipt-cutoff me-1"></i> All Orders
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================
+         MAIN CONTENT
+    ============================= -->
+    <main class="container pb-5">
+
+        <!-- Alert Container -->
+        <div id="alertContainer" class="mb-3"></div>
+
+        <!-- Skeleton Loading State -->
+        <div id="trackingSkeleton" class="row g-4">
+            <div class="col-lg-7">
+                <div class="info-card">
+                    <div class="skeleton mb-4" style="height:28px;width:40%;"></div>
+                    <div class="skeleton mb-3" style="height:70px;width:100%;"></div>
+                    <div class="skeleton mb-3" style="height:70px;width:100%;"></div>
+                    <div class="skeleton mb-3" style="height:70px;width:100%;"></div>
+                    <div class="skeleton" style="height:70px;width:100%;"></div>
+                </div>
+            </div>
+            <div class="col-lg-5">
+                <div class="info-card mb-4">
+                    <div class="skeleton mb-3" style="height:24px;width:50%;"></div>
+                    <div class="skeleton mb-2" style="height:16px;width:100%;"></div>
+                    <div class="skeleton mb-2" style="height:16px;width:80%;"></div>
+                    <div class="skeleton" style="height:16px;width:60%;"></div>
+                </div>
+                <div class="info-card">
+                    <div class="skeleton mb-3" style="height:24px;width:50%;"></div>
+                    <div class="skeleton mb-2" style="height:40px;width:100%;"></div>
+                    <div class="skeleton" style="height:40px;width:100%;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Error State View -->
+        <div id="trackingErrorState" class="d-none">
+            <div class="tracking-error-card">
+                <div class="error-icon-ring">
+                    <i class="bi bi-exclamation-triangle"></i>
+                </div>
+                <h4 class="fw-bold text-dark mb-2" id="errorTitle">Unable to Track Order</h4>
+                <p class="text-muted small mb-4" id="errorDesc">
+                    The requested order could not be located or you may not have permission to view its tracking details.
+                </p>
+                <div class="d-flex gap-2 justify-content-center flex-wrap">
+                    <a href="customer-orders.html" class="btn btn-success px-4">
+                        <i class="bi bi-receipt-cutoff me-1"></i> Back to My Orders
+                    </a>
+                    <a href="customer-marketplace.html" class="btn btn-outline-secondary px-4">
+                        <i class="bi bi-shop me-1"></i> Continue Shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Live Tracking Content -->
+        <div id="trackingContent" class="d-none">
+            <div class="row g-4">
+
+                <!-- LEFT COLUMN: Live Delivery Timeline -->
+                <div class="col-lg-7">
+                    <div class="info-card">
+                        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-4 pb-3 border-bottom">
+                            <div>
+                                <span class="text-muted small d-block mb-1">Current Order Status</span>
+                                <div id="trackStatusBadge"></div>
+                            </div>
+                            <div class="text-end">
+                                <span class="text-muted small d-block mb-1">Order Placed Date</span>
+                                <span class="fw-semibold text-dark" id="trackPlacedDate">—</span>
+                            </div>
+                        </div>
+
+                        <!-- Cancelled Banner if applicable -->
+                        <div id="cancelledBanner" class="alert alert-danger d-none d-flex align-items-center gap-3 mb-4" role="alert">
+                            <i class="bi bi-x-circle-fill fs-3 flex-shrink-0"></i>
+                            <div>
+                                <h6 class="fw-bold mb-1">Order Has Been Cancelled</h6>
+                                <p class="small mb-0">This order was cancelled. Farm stock has been restored and delivery will not proceed.</p>
+                            </div>
+                        </div>
+
+                        <div class="info-card-header">
+                            <i class="bi bi-clock-history text-success"></i> Delivery Milestones
+                        </div>
+
+                        <!-- Timeline Stepper List -->
+                        <div class="timeline-container" id="timelineList">
+                            <!-- Dynamic timeline steps injected here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT COLUMN: Order Summary & Delivery Details -->
+                <div class="col-lg-5">
+
+                    <!-- Delivery & Contact Info -->
+                    <div class="info-card mb-4">
+                        <div class="info-card-header">
+                            <i class="bi bi-geo-alt text-success"></i> Delivery Destination
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Delivery Type</span>
+                            <span class="info-value" id="trackDeliveryType">Standard Delivery</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Address</span>
+                            <span class="info-value" id="trackDeliveryAddress">—</span>
+                        </div>
+                        <div class="info-row" id="rowRecipient" style="display:none;">
+                            <span class="info-label">Recipient</span>
+                            <span class="info-value" id="trackRecipient">—</span>
+                        </div>
+                        <div class="info-row" id="rowPhone" style="display:none;">
+                            <span class="info-label">Contact Phone</span>
+                            <span class="info-value" id="trackPhone">—</span>
+                        </div>
+                    </div>
+
+                    <!-- Payment Summary -->
+                    <div class="info-card mb-4">
+                        <div class="info-card-header">
+                            <i class="bi bi-credit-card text-success"></i> Payment Details
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Payment Status</span>
+                            <span class="info-value" id="trackPaymentStatus">—</span>
+                        </div>
+                        <div class="info-row" id="rowPaymentMethod" style="display:none;">
+                            <span class="info-label">Payment Method</span>
+                            <span class="info-value" id="trackPaymentMethod">—</span>
+                        </div>
+                        <div class="info-row" id="rowTxnRef" style="display:none;">
+                            <span class="info-label">Transaction Ref</span>
+                            <span class="info-value font-monospace small" id="trackTxnRef">—</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label">Shipping</span>
+                            <span class="info-value text-success fw-bold">FREE</span>
+                        </div>
+                        <div class="info-row pt-2 mt-1" style="border-top: 2px solid #E5E7EB;">
+                            <span class="info-label fw-bold text-dark" style="font-size:1rem;">Total Amount</span>
+                            <span class="info-value text-success fw-bold" style="font-size:1.15rem;" id="trackTotalAmount">₹0.00</span>
+                        </div>
+                    </div>
+
+                    <!-- Ordered Items Preview -->
+                    <div class="info-card">
+                        <div class="info-card-header">
+                            <i class="bi bi-basket3 text-success"></i> Ordered Items (<span id="trackItemCount">0</span>)
+                        </div>
+                        <div id="trackItemsList" class="mb-2">
+                            <!-- Injected dynamically -->
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ============================
+         FOOTER
+    ============================= -->
+    <footer class="agri-footer mt-auto">
+        <div class="container text-center">
+            <p class="mb-0 small text-white-50">
+                AgriConnect &bull; Customer Order Tracking &bull; Phase 4
+            </p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- AgriConnect auth + farmer API -->
+    <script src="auth.js"></script>
+    <script src="farmer-api.js"></script>
+
+    <script>
+    /* =====================================================================
+       AgriConnect – Customer Order Tracking Page (Phase 4)
+       Backend Source of Truth:
+         GET /api/orders/{id}/track?customerId={customerId}
+         GET /api/orders/{id}?customerId={customerId} (for items summary)
+         GET /api/payments/order/{orderId}?customerId={customerId}
+       Auth: session-cookie via AgriAuth (No Bearer / JWT)
+    ===================================================================== */
+
+    let currentUser = null;
+    let orderId     = null;
+
+    /* Standard delivery sequence */
+    const TRACKING_STEPS = [
+        {
+            key: 'PLACED',
+            label: 'Order Placed',
+            desc: 'Produce order confirmed by customer and queued for farm fulfillment.',
+            icon: 'bi-receipt'
+        },
+        {
+            key: 'CONFIRMED',
+            label: 'Order Confirmed',
+            desc: 'Farmer accepted order and reserved fresh harvest inventory.',
+            icon: 'bi-check2-circle'
+        },
+        {
+            key: 'PACKED',
+            label: 'Packed & Ready',
+            desc: 'Produce harvested, weighed, graded, and packaged for dispatch.',
+            icon: 'bi-box-seam'
+        },
+        {
+            key: 'SHIPPED',
+            label: 'Shipped from Farm',
+            desc: 'Produce handed over to logistics partner and in transit.',
+            icon: 'bi-truck'
+        },
+        {
+            key: 'OUT_FOR_DELIVERY',
+            label: 'Out for Delivery',
+            desc: 'Local delivery courier has departed with your harvest package.',
+            icon: 'bi-bicycle'
+        },
+        {
+            key: 'DELIVERED',
+            label: 'Delivered',
+            desc: 'Package delivered to customer destination address.',
+            icon: 'bi-bag-check-fill'
+        }
+    ];
+
+    /* Status badge metadata */
+    const STATUS_META = {
+        PLACED:           { icon: 'bi-clock',          label: 'Placed' },
+        CONFIRMED:        { icon: 'bi-check-circle',    label: 'Confirmed' },
+        PACKED:           { icon: 'bi-box-seam',       label: 'Packed' },
+        SHIPPED:          { icon: 'bi-truck',          label: 'Shipped' },
+        OUT_FOR_DELIVERY: { icon: 'bi-bicycle',        label: 'Out for Delivery' },
+        DELIVERED:        { icon: 'bi-bag-check-fill',  label: 'Delivered' },
+        CANCELLED:        { icon: 'bi-x-circle-fill',  label: 'Cancelled' }
+    };
+
+    /* ──────────────────────────────────────────────
+       BOOT
+    ─────────────────────────────────────────────── */
+    document.addEventListener('DOMContentLoaded', () => {
+        // Auth Guard: Require CUSTOMER role
+        currentUser = AgriAuth.requireAuth('CUSTOMER');
+        if (!currentUser) return;
+
+        renderNavUser(currentUser);
+
+        // Parse order ID from URL query string ?id=...
+        const urlParams = new URLSearchParams(window.location.search);
+        orderId = urlParams.get('id');
+
+        if (!orderId || isNaN(parseInt(orderId, 10))) {
+            showErrorState(
+                'Invalid Order Reference',
+                'No valid order ID was provided in the tracking URL. Please return to your order list.'
+            );
+            return;
+        }
+
+        orderId = parseInt(orderId, 10);
+        document.getElementById('breadcrumbOrderId').textContent = `Track Order #${orderId}`;
+        document.getElementById('pageHeaderTitle').textContent = `Order #${orderId} Tracking`;
+
+        loadTrackingData();
+    });
+
+    /* ──────────────────────────────────────────────
+       NAVBAR USER AREA
+    ─────────────────────────────────────────────── */
+    function renderNavUser(user) {
+        const area = document.getElementById('navUserArea');
+        if (!area) return;
+        area.innerHTML = `
+            <div class="agri-user-badge">
+                <i class="bi bi-person-circle text-success"></i>
+                <span>${escHtml(user.name)}</span>
+                <span class="agri-role-pill role-customer">Customer</span>
+            </div>
+            <button type="button" class="btn btn-outline-danger btn-sm" onclick="AgriAuth.logout()">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </button>`;
+    }
+
+    /* ──────────────────────────────────────────────
+       HELPERS & FORMATTERS
+    ─────────────────────────────────────────────── */
+    function escHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function formatCurrency(val) {
+        const n = parseFloat(val);
+        if (isNaN(n)) return '₹0.00';
+        return '₹' + n.toFixed(2);
+    }
+
+    function formatDate(raw) {
+        if (!raw) return '—';
+        try {
+            const d = new Date(raw);
+            return d.toLocaleString('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (e) {
+            return String(raw);
+        }
+    }
+
+    function statusBadgeHtml(status) {
+        const upper = (status || '').toUpperCase().trim();
+        const meta = STATUS_META[upper] || { icon: 'bi-circle', label: upper || 'Unknown' };
+        return `<span class="order-status-badge status-${escHtml(upper)}">
+                    <i class="bi ${meta.icon}"></i> ${escHtml(meta.label)}
+                </span>`;
+    }
+
+    function paymentStatusBadgeHtml(status) {
+        const upper = (status || 'PENDING').toUpperCase().trim();
+        const icon = upper === 'PAID' ? 'bi-check-circle-fill'
+                   : upper === 'FAILED' ? 'bi-x-circle-fill'
+                   : 'bi-clock-fill';
+        return `<span class="payment-status-badge pay-${escHtml(upper)}">
+                    <i class="bi ${icon}"></i> Payment ${escHtml(upper)}
+                </span>`;
+    }
+
+    /* ──────────────────────────────────────────────
+       API WRAPPERS (Session-cookie, no Bearer token)
+    ─────────────────────────────────────────────── */
+    async function apiGet(path) {
+        const resp = await fetch(path, { credentials: 'include' });
+        const data = await resp.json().catch(() => ({}));
+        return { ok: resp.ok, status: resp.status, data };
+    }
+
+    /* ──────────────────────────────────────────────
+       LOAD TRACKING DATA
+    ─────────────────────────────────────────────── */
+    async function loadTrackingData() {
+        const skeleton = document.getElementById('trackingSkeleton');
+        const content  = document.getElementById('trackingContent');
+        const errorBox = document.getElementById('trackingErrorState');
+
+        skeleton.classList.remove('d-none');
+        content.classList.add('d-none');
+        errorBox.classList.add('d-none');
+
+        try {
+            // 1. Primary endpoint: GET /api/orders/{id}/track?customerId={customerId}
+            const trackRes = await apiGet(`/api/orders/${orderId}/track?customerId=${currentUser.id}`);
+
+            if (!trackRes.ok) {
+                skeleton.classList.add('d-none');
+                if (trackRes.status === 404) {
+                    showErrorState('Order Not Found', `Order #${orderId} was not found in the system.`);
+                } else if (trackRes.status === 403) {
+                    showErrorState('Access Forbidden', 'You are unauthorized to track this order.');
+                } else {
+                    showErrorState('Tracking Unavailable', `Failed to load tracking data (HTTP ${trackRes.status}).`);
+                }
+                return;
+            }
+
+            const trackData = trackRes.data;
+            if (!trackData || !trackData.orderId) {
+                skeleton.classList.add('d-none');
+                showErrorState('Empty Tracking Response', 'The tracking service returned an empty response.');
+                return;
+            }
+
+            // 2. Fetch full Order details to populate items and delivery metadata
+            let fullOrder = null;
+            try {
+                const orderRes = await apiGet(`/api/orders/${orderId}?customerId=${currentUser.id}`);
+                if (orderRes.ok && orderRes.data) {
+                    fullOrder = orderRes.data;
+                }
+            } catch (_) {
+                // Best-effort full order details
+            }
+
+            // 3. Fetch payment details if present
+            let paymentData = null;
+            try {
+                const payRes = await apiGet(`/api/payments/order/${orderId}?customerId=${currentUser.id}`);
+                if (payRes.ok && Array.isArray(payRes.data) && payRes.data.length > 0) {
+                    paymentData = payRes.data[0];
+                }
+            } catch (_) {
+                // Best-effort payment details
+            }
+
+            // Render live view
+            renderTrackingView(trackData, fullOrder, paymentData);
+
+            skeleton.classList.add('d-none');
+            content.classList.remove('d-none');
+
+        } catch (err) {
+            console.error('[OrderTracking] error:', err);
+            skeleton.classList.add('d-none');
+            showErrorState('Connection Error', 'A network error occurred while contacting the tracking service.');
+        }
+    }
+
+    function showErrorState(title, desc) {
+        const skeleton = document.getElementById('trackingSkeleton');
+        const content  = document.getElementById('trackingContent');
+        const errorBox = document.getElementById('trackingErrorState');
+
+        if (skeleton) skeleton.classList.add('d-none');
+        if (content)  content.classList.add('d-none');
+
+        document.getElementById('errorTitle').textContent = title;
+        document.getElementById('errorDesc').textContent = desc;
+        if (errorBox) errorBox.classList.remove('d-none');
+    }
+
+    /* ──────────────────────────────────────────────
+       RENDER TRACKING VIEW
+    ─────────────────────────────────────────────── */
+    function renderTrackingView(track, order, payment) {
+        const status = (track.status || (order && order.status) || 'PLACED').toUpperCase().trim();
+        const createdAt = track.createdAt || (order && order.createdAt);
+        const totalAmount = track.totalAmount || (order && order.totalAmount) || 0;
+        const deliveryAddress = track.deliveryAddress || (order && order.deliveryAddress) || 'Standard Customer Address';
+        const deliveryType = (order && order.deliveryType) || 'Standard Delivery';
+        const paymentStatus = track.paymentStatus || (order && order.paymentStatus) || 'PENDING';
+
+        // Status Header & Date
+        document.getElementById('trackStatusBadge').innerHTML = statusBadgeHtml(status);
+        document.getElementById('trackPlacedDate').textContent = formatDate(createdAt);
+
+        // Cancelled banner visibility
+        const cancelledBanner = document.getElementById('cancelledBanner');
+        if (status === 'CANCELLED') {
+            cancelledBanner.classList.remove('d-none');
+        } else {
+            cancelledBanner.classList.add('d-none');
+        }
+
+        // Render Timeline
+        renderTimeline(status, createdAt);
+
+        // Delivery Info
+        document.getElementById('trackDeliveryType').textContent = deliveryType;
+        document.getElementById('trackDeliveryAddress').textContent = deliveryAddress;
+
+        if (order && order.customerName) {
+            document.getElementById('rowRecipient').style.display = 'flex';
+            document.getElementById('trackRecipient').textContent = order.customerName;
+        }
+        if (order && order.customerPhone) {
+            document.getElementById('rowPhone').style.display = 'flex';
+            document.getElementById('trackPhone').textContent = order.customerPhone;
+        }
+
+        // Payment Info
+        document.getElementById('trackPaymentStatus').innerHTML = paymentStatusBadgeHtml(paymentStatus);
+        document.getElementById('trackTotalAmount').textContent = formatCurrency(totalAmount);
+
+        if (payment && payment.method) {
+            document.getElementById('rowPaymentMethod').style.display = 'flex';
+            document.getElementById('trackPaymentMethod').textContent = `${payment.method} (Mock)`;
+        }
+        if (payment && payment.transactionReference) {
+            document.getElementById('rowTxnRef').style.display = 'flex';
+            document.getElementById('trackTxnRef').textContent = payment.transactionReference;
+        }
+
+        // Items Summary List
+        renderItemsSummary(order);
+    }
+
+    /* ──────────────────────────────────────────────
+       RENDER TIMELINE
+    ─────────────────────────────────────────────── */
+    function renderTimeline(currentStatus, createdAt) {
+        const timelineList = document.getElementById('timelineList');
+        timelineList.innerHTML = '';
+
+        if (currentStatus === 'CANCELLED') {
+            // Cancelled flow: Placed node + Cancelled node
+            timelineList.innerHTML = `
+                <div class="timeline-step completed">
+                    <div class="timeline-icon-wrap"><i class="bi bi-receipt"></i></div>
+                    <div class="timeline-card">
+                        <div class="timeline-title">
+                            <span>Order Placed</span>
+                            <span class="timeline-time">${formatDate(createdAt)}</span>
+                        </div>
+                        <p class="timeline-desc">Initial produce order submitted by customer.</p>
+                    </div>
+                </div>
+                <div class="timeline-step cancelled-step">
+                    <div class="timeline-icon-wrap"><i class="bi bi-x-circle-fill"></i></div>
+                    <div class="timeline-card border-danger bg-light">
+                        <div class="timeline-title text-danger">
+                            <span>Order Cancelled</span>
+                        </div>
+                        <p class="timeline-desc text-danger">The order was cancelled and inventory was returned to available stock.</p>
+                    </div>
+                </div>
+            `;
+            return;
+        }
+
+        // Find index of current status in linear progression
+        const stepKeys = TRACKING_STEPS.map(s => s.key);
+        const currentIndex = stepKeys.indexOf(currentStatus);
+        const activeIndex = currentIndex >= 0 ? currentIndex : 0;
+
+        timelineList.innerHTML = TRACKING_STEPS.map((step, idx) => {
+            let stateClass = '';
+            let stepBadge = '';
+            let stepTimestamp = '';
+
+            if (idx < activeIndex) {
+                stateClass = 'completed';
+                if (step.key === 'PLACED' && createdAt) {
+                    stepTimestamp = `<span class="timeline-time">${formatDate(createdAt)}</span>`;
+                }
+            } else if (idx === activeIndex) {
+                stateClass = 'current';
+                stepBadge = `<span class="badge bg-primary ms-2" style="font-size:0.7rem;">CURRENT STATUS</span>`;
+                if (step.key === 'PLACED' && createdAt) {
+                    stepTimestamp = `<span class="timeline-time">${formatDate(createdAt)}</span>`;
+                }
+            } else {
+                stateClass = 'pending';
+            }
+
+            return `
+            <div class="timeline-step ${stateClass}">
+                <div class="timeline-icon-wrap">
+                    <i class="bi ${step.icon}"></i>
+                </div>
+                <div class="timeline-card">
+                    <div class="timeline-title">
+                        <div class="d-flex align-items-center">
+                            <span>${escHtml(step.label)}</span>
+                            ${stepBadge}
+                        </div>
+                        ${stepTimestamp}
+                    </div>
+                    <p class="timeline-desc">${escHtml(step.desc)}</p>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    /* ──────────────────────────────────────────────
+       RENDER ITEMS SUMMARY
+    ─────────────────────────────────────────────── */
+    function renderItemsSummary(order) {
+        const listEl  = document.getElementById('trackItemsList');
+        const countEl = document.getElementById('trackItemCount');
+
+        const items = (order && Array.isArray(order.items)) ? order.items : [];
+        countEl.textContent = items.length;
+
+        if (items.length === 0) {
+            listEl.innerHTML = '<p class="text-muted small fst-italic mb-0">Item details summary unavailable.</p>';
+            return;
+        }
+
+        listEl.innerHTML = items.map(item => {
+            const unitPrice = parseFloat(item.unitPrice) || 0;
+            const qty = Number(item.quantity) || 1;
+            const subtotal = parseFloat(item.subtotal) || (unitPrice * qty);
+            const unit = item.unit || 'unit';
+
+            const thumbHtml = item.productImageUrl
+                ? `<img src="${escHtml(item.productImageUrl)}" class="order-item-thumb" alt="${escHtml(item.productName || '')}" onerror="this.outerHTML='<div class=\\'order-item-thumb-placeholder\\'>🌾</div>'">`
+                : `<div class="order-item-thumb-placeholder">🌾</div>`;
+
+            return `
+            <div class="d-flex align-items-center justify-content-between py-2 border-bottom">
+                <div class="d-flex align-items-center gap-2 min-w-0">
+                    ${thumbHtml}
+                    <div class="min-w-0">
+                        <div class="fw-semibold text-dark text-truncate small">${escHtml(item.productName || 'Produce')}</div>
+                        <div class="text-muted" style="font-size:0.75rem;">
+                            ${qty} ${escHtml(unit)} &times; ${formatCurrency(unitPrice)}
+                        </div>
+                    </div>
+                </div>
+                <div class="text-end ps-2">
+                    <span class="fw-bold text-dark small">${formatCurrency(subtotal)}</span>
+                </div>
+            </div>`;
+        }).join('');
+    }
+
+    // Expose functions to window
+    window.loadTrackingData = loadTrackingData;
+    </script>
+</body>
+</html>

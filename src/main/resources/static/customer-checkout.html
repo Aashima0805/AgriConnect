@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout - AgriConnect</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- AgriConnect Design System -->
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* ── Step indicator ── */
+        .checkout-steps {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin-bottom: 2rem;
+        }
+        .step-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            flex: 1;
+            position: relative;
+        }
+        .step-item:not(:last-child)::after {
+            content: '';
+            position: absolute;
+            top: 18px;
+            left: 50%;
+            width: 100%;
+            height: 2px;
+            background-color: #E5E7EB;
+            z-index: 0;
+        }
+        .step-item.done::after   { background-color: #16A34A; }
+        .step-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            border: 2px solid #D1D5DB;
+            background: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: #9CA3AF;
+            z-index: 1;
+            position: relative;
+        }
+        .step-item.active .step-circle {
+            border-color: #16A34A;
+            background: #16A34A;
+            color: #fff;
+        }
+        .step-item.done .step-circle {
+            border-color: #16A34A;
+            background: #16A34A;
+            color: #fff;
+        }
+        .step-label {
+            font-size: 0.73rem;
+            color: #6B7280;
+            margin-top: 0.35rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+        .step-item.active .step-label,
+        .step-item.done   .step-label { color: #16A34A; }
+
+        /* ── Order item row ── */
+        .order-item-img {
+            width: 48px;
+            height: 48px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #E5E7EB;
+            flex-shrink: 0;
+        }
+
+        /* ── Payment method cards ── */
+        .pay-method-card {
+            border: 2px solid #E5E7EB;
+            border-radius: 12px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s;
+        }
+        .pay-method-card:hover  { border-color: #86EFAC; background: #F0FDF4; }
+        .pay-method-card.active { border-color: #16A34A; background: #F0FDF4; }
+        .pay-method-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            flex-shrink: 0;
+        }
+
+        /* ── Success card ── */
+        .success-icon-ring {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            background: #F0FDF4;
+            border: 3px solid #86EFAC;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.2rem;
+            color: #16A34A;
+            margin: 0 auto 1.25rem;
+        }
+
+        /* ── Mock badge ── */
+        .mock-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background: #FEF3C7;
+            border: 1px solid #FDE68A;
+            color: #92400E;
+            border-radius: 6px;
+            padding: 0.25rem 0.6rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        /* ── Loading overlay ── */
+        #loadingOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255,255,255,0.88);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        /* ── Section panels ── */
+        .section-panel { display: none; }
+        .section-panel.visible { display: block; }
+
+        /* ── Sticky summary sidebar ── */
+        .summary-sidebar { position: sticky; top: 84px; }
+    </style>
+</head>
+<body>
+
+    <!-- ============================
+         NAVBAR
+    ============================= -->
+    <nav class="navbar navbar-expand-lg agri-navbar sticky-top">
+        <div class="container">
+            <a class="navbar-brand agri-brand" href="customer-dashboard.html">
+                <i class="bi bi-flower1"></i> AgriConnect
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#checkoutNav" aria-controls="checkoutNav"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="checkoutNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link agri-nav-link" href="customer-dashboard.html">
+                            <i class="bi bi-grid"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link agri-nav-link" href="customer-marketplace.html">
+                            <i class="bi bi-shop"></i> Marketplace
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link agri-nav-link" href="customer-cart.html">
+                            <i class="bi bi-cart3"></i> Cart
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link agri-nav-link active" href="customer-checkout.html">
+                            <i class="bi bi-credit-card"></i> Checkout
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link agri-nav-link" href="customer-orders.html">
+                            <i class="bi bi-receipt-cutoff"></i> Orders
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link agri-nav-link" href="customer-reviews.html">
+                            <i class="bi bi-star"></i> Reviews
+                        </a>
+                    </li>
+                </ul>
+                <div id="navUserArea" class="d-flex align-items-center gap-3 flex-wrap"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ============================
+         LOADING OVERLAY
+    ============================= -->
+    <div id="loadingOverlay">
+        <div class="spinner-border text-success" style="width:2.5rem;height:2.5rem;" role="status">
+            <span class="visually-hidden">Loading…</span>
+        </div>
+        <span class="text-muted fw-semibold small" id="loadingMsg">Processing…</span>
+    </div>
+
+    <!-- ============================
+         ALERT CONTAINER
+    ============================= -->
+    <div id="alertContainer" class="container mt-3" style="min-height:0;"></div>
+
+    <!-- ============================
+         MAIN CONTENT
+    ============================= -->
+    <main class="container py-4">
+
+        <!-- Breadcrumb + title -->
+        <div class="mb-4">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1 small">
+                    <li class="breadcrumb-item">
+                        <a href="customer-dashboard.html" class="text-success text-decoration-none">Dashboard</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="customer-cart.html" class="text-success text-decoration-none">Cart</a>
+                    </li>
+                    <li class="breadcrumb-item active">Checkout</li>
+                </ol>
+            </nav>
+            <h2 class="fw-bold text-dark m-0">
+                <i class="bi bi-credit-card" style="color:#16A34A;"></i> Checkout
+            </h2>
+            <p class="text-muted small m-0">Complete your farm-fresh produce order</p>
+        </div>
+
+        <!-- Step indicator -->
+        <div class="checkout-steps mb-4" id="stepsBar">
+            <div class="step-item active" id="stepCart">
+                <div class="step-circle"><i class="bi bi-cart3"></i></div>
+                <div class="step-label">Cart</div>
+            </div>
+            <div class="step-item" id="stepDelivery">
+                <div class="step-circle">2</div>
+                <div class="step-label">Delivery</div>
+            </div>
+            <div class="step-item" id="stepPayment">
+                <div class="step-circle">3</div>
+                <div class="step-label">Payment</div>
+            </div>
+            <div class="step-item" id="stepDone">
+                <div class="step-circle"><i class="bi bi-check-lg"></i></div>
+                <div class="step-label">Done</div>
+            </div>
+        </div>
+
+        <!-- ============================
+             PANEL: EMPTY CART
+        ============================= -->
+        <div id="panelEmpty" class="section-panel">
+            <div class="agri-card p-5 text-center" style="border: 2px dashed var(--agri-border);">
+                <div class="mb-4" style="font-size:4rem;">🛒</div>
+                <h3 class="fw-bold text-dark mb-2">Your Cart is Empty</h3>
+                <p class="text-muted mb-4" style="max-width:400px; margin:0 auto;">
+                    Add some farm-fresh produce to your cart before checking out.
+                </p>
+                <a href="customer-marketplace.html" class="btn btn-agri-primary px-5 py-2">
+                    <i class="bi bi-shop"></i> Browse Marketplace
+                </a>
+            </div>
+        </div>
+
+        <!-- ============================
+             PANEL: CHECKOUT FORM (Delivery + Summary)
+        ============================= -->
+        <div id="panelCheckout" class="section-panel">
+            <div class="row g-4">
+
+                <!-- LEFT: Delivery Details -->
+                <div class="col-lg-7">
+                    <div class="agri-card mb-4">
+                        <div class="agri-card-header">
+                            <h5 class="agri-card-title">
+                                <i class="bi bi-geo-alt-fill text-success"></i> Delivery Details
+                            </h5>
+                        </div>
+                        <div class="agri-card-body">
+                            <form id="deliveryForm" novalidate>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold small text-muted" for="deliveryAddress">
+                                        Delivery Address <span class="text-danger">*</span>
+                                    </label>
+                                    <textarea id="deliveryAddress" class="form-control" rows="3"
+                                              placeholder="Enter your full delivery address…"
+                                              required></textarea>
+                                    <div class="invalid-feedback">Please enter a delivery address.</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold small text-muted" for="deliveryType">
+                                        Delivery Type
+                                    </label>
+                                    <select id="deliveryType" class="form-select">
+                                        <option value="Standard Delivery" selected>Standard Delivery (3–5 days)</option>
+                                        <option value="Express Delivery">Express Delivery (1–2 days)</option>
+                                        <option value="Farm Pickup">Farm Pickup</option>
+                                    </select>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Order items preview -->
+                    <div class="agri-card">
+                        <div class="agri-card-header">
+                            <h5 class="agri-card-title">
+                                <i class="bi bi-list-check text-success"></i> Your Cart Items
+                            </h5>
+                            <span id="itemCountLabel" class="badge bg-success-subtle text-success px-3 py-1 rounded-pill fw-semibold">
+                                0 items
+                            </span>
+                        </div>
+                        <div class="agri-card-body p-0">
+                            <div id="cartItemsList" class="px-3 pb-3"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT: Order Summary -->
+                <div class="col-lg-5">
+                    <div class="agri-card p-4 summary-sidebar">
+                        <h5 class="fw-bold text-dark mb-3">
+                            <i class="bi bi-receipt text-success"></i> Order Summary
+                        </h5>
+                        <div id="summaryLines"></div>
+                        <hr class="my-3">
+                        <div class="d-flex justify-content-between mb-1 text-muted small">
+                            <span>Farm Dispatch</span>
+                            <span class="text-success fw-semibold">
+                                <i class="bi bi-truck"></i> Free
+                            </span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-4" style="font-size:1.1rem;font-weight:800;">
+                            <span class="text-dark">Total Amount</span>
+                            <span class="text-success" id="summaryTotal">₹0.00</span>
+                        </div>
+
+                        <button class="btn btn-success w-100 py-2 fw-bold" id="btnProceedToPayment"
+                                onclick="proceedToPayment()">
+                            <i class="bi bi-shield-lock-fill"></i> Proceed to Payment
+                        </button>
+                        <a href="customer-cart.html" class="btn btn-outline-secondary w-100 mt-2 fw-semibold">
+                            <i class="bi bi-arrow-left"></i> Back to Cart
+                        </a>
+
+                        <div class="mt-3 text-center">
+                            <small class="text-muted">
+                                <i class="bi bi-lock-fill text-success"></i>
+                                Session-secured checkout &bull; AgriConnect Phase 4
+                            </small>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div><!-- /panelCheckout -->
+
+        <!-- ============================
+             PANEL: MOCK PAYMENT
+        ============================= -->
+        <div id="panelPayment" class="section-panel">
+            <div class="row g-4 justify-content-center">
+                <div class="col-lg-7">
+
+                    <!-- Mock disclaimer -->
+                    <div class="alert alert-warning d-flex align-items-start gap-2 mb-4" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill mt-1 flex-shrink-0"></i>
+                        <div>
+                            <strong>Mock / Demo Payment Only.</strong>
+                            This is an academic prototype. No real money is charged.
+                            All payment details entered here are simulated and not stored securely.
+                        </div>
+                    </div>
+
+                    <!-- Order recap mini -->
+                    <div class="agri-card p-3 mb-4">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="fw-semibold text-dark">
+                                <i class="bi bi-box-seam text-success"></i>
+                                Order <span id="payOrderId">#—</span>
+                            </span>
+                            <span class="fw-bold text-success fs-5" id="payOrderTotal">₹—</span>
+                        </div>
+                        <div class="text-muted small mt-1">
+                            <i class="bi bi-geo-alt"></i>
+                            <span id="payDeliveryAddr">—</span>
+                        </div>
+                    </div>
+
+                    <!-- Payment method cards -->
+                    <div class="agri-card mb-4">
+                        <div class="agri-card-header">
+                            <h5 class="agri-card-title">
+                                <i class="bi bi-credit-card text-success"></i> Select Payment Method
+                            </h5>
+                            <span class="mock-badge"><i class="bi bi-info-circle"></i> Demo</span>
+                        </div>
+                        <div class="agri-card-body">
+                            <div class="row g-3 mb-4">
+                                <!-- UPI -->
+                                <div class="col-4">
+                                    <div class="pay-method-card active text-center" id="card-UPI"
+                                         onclick="selectMethod('UPI')">
+                                        <div class="pay-method-icon mx-auto mb-2"
+                                             style="background:#EFF6FF;color:#2563EB;">
+                                            <i class="bi bi-phone-fill"></i>
+                                        </div>
+                                        <div class="fw-semibold small">UPI</div>
+                                        <div class="text-muted" style="font-size:.72rem;">Instant transfer</div>
+                                    </div>
+                                </div>
+                                <!-- Card -->
+                                <div class="col-4">
+                                    <div class="pay-method-card text-center" id="card-CARD"
+                                         onclick="selectMethod('CARD')">
+                                        <div class="pay-method-icon mx-auto mb-2"
+                                             style="background:#F5F3FF;color:#7C3AED;">
+                                            <i class="bi bi-credit-card-2-front-fill"></i>
+                                        </div>
+                                        <div class="fw-semibold small">Card</div>
+                                        <div class="text-muted" style="font-size:.72rem;">Debit / Credit</div>
+                                    </div>
+                                </div>
+                                <!-- COD -->
+                                <div class="col-4">
+                                    <div class="pay-method-card text-center" id="card-COD"
+                                         onclick="selectMethod('COD')">
+                                        <div class="pay-method-icon mx-auto mb-2"
+                                             style="background:#FFF7ED;color:#C2410C;">
+                                            <i class="bi bi-cash-coin"></i>
+                                        </div>
+                                        <div class="fw-semibold small">Cash</div>
+                                        <div class="text-muted" style="font-size:.72rem;">Pay on delivery</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- UPI fields -->
+                            <div id="fieldsUPI">
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold small text-muted" for="upiId">
+                                        UPI ID <span class="mock-badge ms-1"><i class="bi bi-info-circle"></i> Demo only</span>
+                                    </label>
+                                    <div class="input-group">
+                                        <span class="input-group-text"><i class="bi bi-at"></i></span>
+                                        <input type="text" id="upiId" class="form-control"
+                                               value="customer@okaxis"
+                                               placeholder="yourname@bankhandle">
+                                    </div>
+                                    <div class="form-text text-warning">
+                                        <i class="bi bi-exclamation-circle"></i>
+                                        Demo UPI — no transaction will occur.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Card fields -->
+                            <div id="fieldsCard" style="display:none;">
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <label class="form-label fw-semibold small text-muted">
+                                            Card Number <span class="mock-badge ms-1"><i class="bi bi-info-circle"></i> Demo only</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="bi bi-credit-card"></i></span>
+                                            <input type="text" id="cardNumber" class="form-control"
+                                                   value="4111 1111 1111 1111"
+                                                   placeholder="•••• •••• •••• ••••" maxlength="19">
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label fw-semibold small text-muted">Expiry (MM/YY)</label>
+                                        <input type="text" id="cardExpiry" class="form-control"
+                                               value="12/27" placeholder="MM/YY" maxlength="5">
+                                    </div>
+                                    <div class="col-6">
+                                        <label class="form-label fw-semibold small text-muted">CVV</label>
+                                        <input type="password" id="cardCvv" class="form-control"
+                                               value="123" placeholder="•••" maxlength="4">
+                                    </div>
+                                </div>
+                                <div class="form-text text-warning mt-2">
+                                    <i class="bi bi-exclamation-circle"></i>
+                                    Demo card data — not transmitted or stored.
+                                </div>
+                            </div>
+
+                            <!-- COD fields -->
+                            <div id="fieldsCOD" style="display:none;">
+                                <div class="alert alert-light border d-flex align-items-center gap-2">
+                                    <i class="bi bi-cash-coin text-warning fs-5"></i>
+                                    <div>
+                                        <strong>Cash on Delivery selected.</strong><br>
+                                        <span class="text-muted small">Pay the delivery agent when your produce arrives.</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pay button -->
+                    <button class="btn btn-success w-100 py-2 fw-bold fs-5" id="btnConfirmPay"
+                            onclick="confirmPayment()">
+                        <i class="bi bi-lock-fill"></i>
+                        Pay <span id="btnPayAmount">₹—</span> (Mock)
+                    </button>
+                    <p class="text-center text-muted small mt-2">
+                        <i class="bi bi-shield-check text-success"></i>
+                        Academic prototype — no real payment processed
+                    </p>
+                </div>
+            </div>
+        </div><!-- /panelPayment -->
+
+        <!-- ============================
+             PANEL: SUCCESS
+        ============================= -->
+        <div id="panelSuccess" class="section-panel">
+            <div class="row justify-content-center">
+                <div class="col-lg-6">
+                    <div class="agri-card p-5 text-center">
+                        <div class="success-icon-ring">
+                            <i class="bi bi-check-lg"></i>
+                        </div>
+                        <h3 class="fw-bold text-dark mb-1">Payment Successful!</h3>
+                        <p class="text-muted mb-4" style="max-width:380px;margin:0 auto;">
+                            Your farm-fresh produce order has been placed and the mock payment was processed successfully.
+                        </p>
+
+                        <div class="bg-light rounded-3 p-4 mb-4 text-start">
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted small">Order ID</span>
+                                <span class="fw-bold text-dark" id="successOrderId">—</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted small">Amount Paid</span>
+                                <span class="fw-bold text-success" id="successAmount">—</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted small">Payment Method</span>
+                                <span class="fw-semibold text-dark" id="successMethod">—</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted small">Transaction Ref</span>
+                                <span class="fw-semibold text-dark font-monospace small" id="successTxnRef">—</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-0">
+                                <span class="text-muted small">Status</span>
+                                <span class="badge bg-success" id="successStatus">SUCCESS</span>
+                            </div>
+                        </div>
+
+                        <div class="alert alert-warning text-start py-2 px-3 mb-4" style="font-size:.8rem;">
+                            <i class="bi bi-info-circle-fill"></i>
+                            <strong>Mock Payment Disclaimer:</strong>
+                            <span id="successDisclaimer">Academic Prototype Mock Payment — No actual financial charge processed.</span>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <a href="customer-orders.html" class="btn btn-success fw-bold">
+                                <i class="bi bi-receipt-cutoff"></i> View in My Orders
+                            </a>
+                            <a href="customer-marketplace.html" class="btn btn-agri-primary">
+                                <i class="bi bi-shop"></i> Continue Shopping
+                            </a>
+                            <a href="customer-dashboard.html" class="btn btn-outline-secondary">
+                                <i class="bi bi-grid"></i> Back to Dashboard
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div><!-- /panelSuccess -->
+
+    </main>
+
+    <!-- ============================
+         FOOTER
+    ============================= -->
+    <footer class="agri-footer mt-auto">
+        <div class="container text-center">
+            <p class="mb-0 small text-white-50">
+                AgriConnect &bull; Customer Checkout &bull; Phase 4 &bull; Mock Payment Only
+            </p>
+        </div>
+    </footer>
+
+    <!-- ============================
+         SCRIPTS
+    ============================= -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="auth.js"></script>
+    <script src="farmer-api.js"></script>
+    <script>
+    /* =====================================================================
+       Customer Checkout — Phase 4
+       Backend source of truth:
+         POST /api/orders/checkout  → CheckoutRequest  → OrderDto
+         POST /api/payments         → PaymentRequest   → PaymentDto
+       Session-cookie auth only. No Bearer / JWT.
+    ===================================================================== */
+
+    /* ── module state ── */
+    let _user      = null;   // logged-in customer (from AgriAuth)
+    let _cart      = null;   // CartResponseDto from GET /api/cart/{id}
+    let _order     = null;   // OrderDto from POST /api/orders/checkout
+    let _payment   = null;   // PaymentDto from POST /api/payments
+    let _method    = 'UPI';  // selected payment method
+
+    /* ──────────────────────────────────────────────
+       BOOT
+    ─────────────────────────────────────────────── */
+    document.addEventListener('DOMContentLoaded', async () => {
+        _user = AgriAuth.requireAuth('CUSTOMER');
+        if (!_user) return;
+
+        renderNavUser(_user);
+        await loadCart();
+    });
+
+    /* ──────────────────────────────────────────────
+       NAV USER AREA
+    ─────────────────────────────────────────────── */
+    function renderNavUser(user) {
+        const area = document.getElementById('navUserArea');
+        if (!area) return;
+        area.innerHTML = `
+            <div class="agri-user-badge">
+                <i class="bi bi-person-circle text-success"></i>
+                <span>${AgriAuth.escapeHtml(user.name)}</span>
+                <span class="agri-role-pill role-customer">Customer</span>
+            </div>
+            <button type="button" class="btn btn-outline-danger btn-sm" onclick="AgriAuth.logout()">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </button>`;
+    }
+
+    /* ──────────────────────────────────────────────
+       STEP INDICATOR HELPERS
+    ─────────────────────────────────────────────── */
+    function setSteps(activeStep) {
+        // activeStep: 'checkout' | 'payment' | 'done'
+        const cart     = document.getElementById('stepCart');
+        const delivery = document.getElementById('stepDelivery');
+        const payment  = document.getElementById('stepPayment');
+        const done     = document.getElementById('stepDone');
+
+        // reset all
+        [cart, delivery, payment, done].forEach(el => {
+            el.classList.remove('active', 'done');
+        });
+
+        if (activeStep === 'checkout') {
+            cart.classList.add('done');
+            delivery.classList.add('active');
+        } else if (activeStep === 'payment') {
+            cart.classList.add('done');
+            delivery.classList.add('done');
+            payment.classList.add('active');
+        } else if (activeStep === 'done') {
+            cart.classList.add('done');
+            delivery.classList.add('done');
+            payment.classList.add('done');
+            done.classList.add('active');
+        }
+    }
+
+    /* ──────────────────────────────────────────────
+       PANEL SWITCHER
+    ─────────────────────────────────────────────── */
+    function showPanel(name) {
+        ['panelEmpty', 'panelCheckout', 'panelPayment', 'panelSuccess'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.classList.toggle('visible', id === 'panel' + name);
+        });
+    }
+
+    /* ──────────────────────────────────────────────
+       LOAD CART
+    ─────────────────────────────────────────────── */
+    async function loadCart() {
+        showLoading(true, 'Loading cart…');
+        try {
+            const resp = await FarmerAPI.get(`/api/cart/${_user.id}`);
+            if (!resp.ok) {
+                showPageAlert('danger', resp.data && resp.data.error
+                    ? resp.data.error : 'Failed to load cart.');
+                showPanel('Empty');
+                setSteps('checkout');
+                return;
+            }
+            _cart = resp.data;
+            const items = _cart.items || [];
+
+            if (items.length === 0) {
+                showPanel('Empty');
+                return;
+            }
+
+            renderCheckoutPanel(items, _cart);
+            showPanel('Checkout');
+            setSteps('checkout');
+        } catch (e) {
+            console.error('[Checkout] loadCart error:', e);
+            showPageAlert('danger', 'Unable to reach cart service. Please try again.');
+            showPanel('Empty');
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    /* ──────────────────────────────────────────────
+       RENDER CHECKOUT PANEL
+    ─────────────────────────────────────────────── */
+    function renderCheckoutPanel(items, cartData) {
+        // Delivery address pre-fill from user profile
+        const addrField = document.getElementById('deliveryAddress');
+        if (addrField && _user.address) {
+            addrField.value = _user.address;
+        }
+
+        // Item count badge
+        document.getElementById('itemCountLabel').textContent =
+            `${items.length} item${items.length !== 1 ? 's' : ''}`;
+
+        // Cart items list
+        const list = document.getElementById('cartItemsList');
+        list.innerHTML = '';
+        items.forEach(item => {
+            const unitPrice = parseFloat(item.unitPrice) || 0;
+            const qty       = Number(item.quantity)     || 1;
+            const subtotal  = parseFloat(item.itemTotal) || (unitPrice * qty);
+            const unit      = item.unit || 'unit';
+            const imgHtml   = item.productImageUrl
+                ? `<img src="${item.productImageUrl}"
+                        class="order-item-img"
+                        alt="${AgriAuth.escapeHtml(item.productName || '')}"
+                        onerror="this.style.display='none'">`
+                : `<div class="order-item-img d-flex align-items-center justify-content-center bg-light fs-4">🌾</div>`;
+
+            const row = document.createElement('div');
+            row.className = 'd-flex align-items-center gap-3 py-3 border-bottom';
+            row.innerHTML = `
+                ${imgHtml}
+                <div class="flex-grow-1 min-w-0">
+                    <div class="fw-semibold text-dark text-truncate">
+                        ${AgriAuth.escapeHtml(item.productName || 'Unknown Product')}
+                    </div>
+                    <small class="text-muted">
+                        ₹${unitPrice.toFixed(2)} / ${AgriAuth.escapeHtml(unit)}
+                        &times; ${qty} ${AgriAuth.escapeHtml(unit)}
+                    </small>
+                </div>
+                <div class="text-end flex-shrink-0">
+                    <span class="fw-bold text-dark">₹${subtotal.toFixed(2)}</span>
+                </div>`;
+            list.appendChild(row);
+        });
+
+        // Summary sidebar
+        const total = parseFloat(cartData.cartTotal) || 0;
+        const summaryLines = document.getElementById('summaryLines');
+        summaryLines.innerHTML = '';
+        items.forEach(item => {
+            const unitPrice = parseFloat(item.unitPrice) || 0;
+            const qty       = Number(item.quantity)     || 1;
+            const subtotal  = parseFloat(item.itemTotal) || (unitPrice * qty);
+            const line = document.createElement('div');
+            line.className = 'd-flex justify-content-between mb-1 text-muted small';
+            line.innerHTML = `
+                <span class="text-truncate me-2" style="max-width:160px;"
+                      title="${AgriAuth.escapeHtml(item.productName || '')}">
+                    ${AgriAuth.escapeHtml(item.productName || 'Product')}
+                    <span class="text-muted">&times;${qty}</span>
+                </span>
+                <span class="fw-semibold text-dark text-nowrap">₹${subtotal.toFixed(2)}</span>`;
+            summaryLines.appendChild(line);
+        });
+        document.getElementById('summaryTotal').textContent = `₹${total.toFixed(2)}`;
+    }
+
+    /* ──────────────────────────────────────────────
+       PROCEED TO PAYMENT (calls POST /api/orders/checkout)
+    ─────────────────────────────────────────────── */
+    async function proceedToPayment() {
+        // Validate delivery address
+        const addrEl = document.getElementById('deliveryAddress');
+        const addr   = (addrEl.value || '').trim();
+        if (!addr) {
+            addrEl.classList.add('is-invalid');
+            addrEl.focus();
+            return;
+        }
+        addrEl.classList.remove('is-invalid');
+
+        const deliveryType = document.getElementById('deliveryType').value;
+
+        // Build CheckoutRequest — pass customerId + deliveryAddress + deliveryType.
+        // items is omitted so the backend reads from the cart automatically.
+        const checkoutReq = {
+            customerId:      _user.id,
+            deliveryAddress: addr,
+            deliveryType:    deliveryType,
+            paymentMethod:   _method
+        };
+
+        showLoading(true, 'Placing order…');
+        document.getElementById('btnProceedToPayment').disabled = true;
+        try {
+            const resp = await FarmerAPI.post('/api/orders/checkout', checkoutReq);
+            if (!resp.ok) {
+                showPageAlert('danger',
+                    (resp.data && resp.data.error) ? resp.data.error : 'Checkout failed. Please try again.');
+                return;
+            }
+            _order = resp.data;  // OrderDto — source of truth for order ID, total, items
+
+            // Populate payment panel
+            populatePaymentPanel(_order);
+            showPanel('Payment');
+            setSteps('payment');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (e) {
+            console.error('[Checkout] proceedToPayment error:', e);
+            showPageAlert('danger', 'Error placing order. Please try again.');
+        } finally {
+            showLoading(false);
+            document.getElementById('btnProceedToPayment').disabled = false;
+        }
+    }
+
+    /* ──────────────────────────────────────────────
+       POPULATE PAYMENT PANEL with OrderDto data
+    ─────────────────────────────────────────────── */
+    function populatePaymentPanel(order) {
+        const total = parseFloat(order.totalAmount) || 0;
+
+        document.getElementById('payOrderId').textContent    = `#${order.id}`;
+        document.getElementById('payOrderTotal').textContent = `₹${total.toFixed(2)}`;
+        document.getElementById('payDeliveryAddr').textContent =
+            order.deliveryAddress || _user.address || '—';
+
+        document.getElementById('btnPayAmount').textContent = `₹${total.toFixed(2)}`;
+    }
+
+    /* ──────────────────────────────────────────────
+       PAYMENT METHOD SELECTION
+    ─────────────────────────────────────────────── */
+    function selectMethod(method) {
+        _method = method;
+
+        // Update card borders
+        ['UPI', 'CARD', 'COD'].forEach(m => {
+            const card = document.getElementById(`card-${m}`);
+            if (card) card.classList.toggle('active', m === method);
+        });
+
+        // Show/hide field panels
+        document.getElementById('fieldsUPI').style.display  = method === 'UPI'  ? '' : 'none';
+        document.getElementById('fieldsCard').style.display = method === 'CARD' ? '' : 'none';
+        document.getElementById('fieldsCOD').style.display  = method === 'COD'  ? '' : 'none';
+    }
+
+    /* ──────────────────────────────────────────────
+       CONFIRM MOCK PAYMENT (calls POST /api/payments)
+    ─────────────────────────────────────────────── */
+    async function confirmPayment() {
+        if (!_order) {
+            showPageAlert('danger', 'No order found. Please restart checkout.');
+            return;
+        }
+
+        const total = parseFloat(_order.totalAmount) || 0;
+
+        // Build PaymentRequest using exact backend fields:
+        // { orderId, customerId, amount, method, simulateSuccess }
+        const payReq = {
+            orderId:         _order.id,
+            customerId:      _user.id,
+            amount:          total,
+            method:          _method,      // UPI | CARD | COD
+            simulateSuccess: true          // always simulate success in demo
+        };
+
+        showLoading(true, 'Processing mock payment…');
+        document.getElementById('btnConfirmPay').disabled = true;
+        try {
+            const resp = await FarmerAPI.post('/api/payments', payReq);
+            if (!resp.ok) {
+                showPageAlert('danger',
+                    (resp.data && resp.data.error) ? resp.data.error
+                    : (resp.data && resp.data.message) ? resp.data.message
+                    : 'Payment failed. Please try again.');
+                return;
+            }
+            _payment = resp.data;  // PaymentDto — source of truth
+
+            populateSuccessPanel(_order, _payment);
+            showPanel('Success');
+            setSteps('done');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (e) {
+            console.error('[Checkout] confirmPayment error:', e);
+            showPageAlert('danger', 'Error processing mock payment. Please try again.');
+        } finally {
+            showLoading(false);
+            document.getElementById('btnConfirmPay').disabled = false;
+        }
+    }
+
+    /* ──────────────────────────────────────────────
+       POPULATE SUCCESS PANEL with PaymentDto data
+    ─────────────────────────────────────────────── */
+    function populateSuccessPanel(order, payment) {
+        const amount = parseFloat(payment.amount) || parseFloat(order.totalAmount) || 0;
+
+        document.getElementById('successOrderId').textContent =
+            `#${payment.orderId || order.id}`;
+        document.getElementById('successAmount').textContent =
+            `₹${amount.toFixed(2)}`;
+        document.getElementById('successMethod').textContent =
+            payment.method || _method;
+        document.getElementById('successTxnRef').textContent =
+            payment.transactionReference || '—';
+
+        const statusBadge = document.getElementById('successStatus');
+        statusBadge.textContent = payment.status || 'SUCCESS';
+        statusBadge.className   = `badge ${payment.status === 'SUCCESS' ? 'bg-success' : 'bg-danger'}`;
+
+        if (payment.disclaimer) {
+            document.getElementById('successDisclaimer').textContent = payment.disclaimer;
+        }
+    }
+
+    /* ──────────────────────────────────────────────
+       UTILITIES
+    ─────────────────────────────────────────────── */
+    function showLoading(show, msg) {
+        const el  = document.getElementById('loadingOverlay');
+        const txt = document.getElementById('loadingMsg');
+        if (el)  el.style.display = show ? 'flex' : 'none';
+        if (txt && msg) txt.textContent = msg;
+    }
+
+    function showPageAlert(type, msg) {
+        const container = document.getElementById('alertContainer');
+        if (!container) return;
+
+        const icons = {
+            success: 'check-circle-fill',
+            danger:  'exclamation-triangle-fill',
+            warning: 'exclamation-circle-fill',
+            info:    'info-circle-fill'
+        };
+        const icon = icons[type] || 'info-circle-fill';
+
+        container.innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+                <i class="bi bi-${icon}"></i>
+                <span>${msg}</span>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>`;
+
+        setTimeout(() => {
+            const alertEl = container.querySelector('.alert');
+            if (alertEl) {
+                try {
+                    bootstrap.Alert.getOrCreateInstance(alertEl).close();
+                } catch (_) { alertEl.remove(); }
+            }
+        }, 5000);
+    }
+    </script>
+</body>
+</html>

@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Rental Payment - AgriConnect</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .payment-card {
+            max-width: 650px;
+            margin: 30px auto;
+            border: 1px solid #e5e7eb;
+            border-radius: 18px;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+        }
+
+        .summary-box {
+            background: #f6faf7;
+            border-radius: 12px;
+            padding: 18px;
+        }
+
+        .payment-method {
+            border: 1px solid #dee2e6;
+            border-radius: 12px;
+            padding: 14px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .payment-method:hover {
+            border-color: #198754;
+        }
+
+        .payment-method input {
+            margin-right: 10px;
+        }
+
+        .amount {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #198754;
+        }
+    </style>
+</head>
+
+<body>
+
+<div id="navbar-container"></div>
+
+<main class="container py-4">
+
+    <div id="alertContainer"></div>
+
+    <div class="card payment-card">
+
+        <div class="card-body p-4">
+
+            <div class="text-center mb-4">
+
+                <div class="text-success mb-2">
+                    <i class="bi bi-credit-card display-5"></i>
+                </div>
+
+                <h2 class="mb-1">
+                    Rental Payment
+                </h2>
+
+                <p class="text-muted mb-0">
+                    Complete payment for your approved equipment rental.
+                </p>
+
+            </div>
+
+            <div id="loadingContainer" class="text-center py-4">
+
+                <div class="spinner-border text-success"></div>
+
+                <p class="text-muted mt-2">
+                    Loading rental details...
+                </p>
+
+            </div>
+
+            <div id="paymentContent" class="d-none">
+
+                <div class="summary-box mb-4">
+
+                    <div class="d-flex justify-content-between mb-2">
+
+                        <span class="text-muted">
+                            Equipment
+                        </span>
+
+                        <strong id="equipmentName">
+                            -
+                        </strong>
+
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+
+                        <span class="text-muted">
+                            Owner
+                        </span>
+
+                        <strong id="ownerName">
+                            -
+                        </strong>
+
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+
+                        <span class="text-muted">
+                            Rental period
+                        </span>
+
+                        <strong id="rentalDates">
+                            -
+                        </strong>
+
+                    </div>
+
+                    <div class="d-flex justify-content-between mb-2">
+
+                        <span class="text-muted">
+                            Number of days
+                        </span>
+
+                        <strong id="numberOfDays">
+                            -
+                        </strong>
+
+                    </div>
+
+                    <hr>
+
+                    <div class="d-flex justify-content-between align-items-center">
+
+                        <span class="fw-semibold">
+                            Total Amount
+                        </span>
+
+                        <span class="amount" id="rentalAmount">
+                            ₹0.00
+                        </span>
+
+                    </div>
+
+                </div>
+
+                <h5 class="mb-3">
+                    Select Payment Method
+                </h5>
+
+                <div class="d-grid gap-2 mb-4">
+
+                    <label class="payment-method">
+
+                        <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="UPI"
+                            checked>
+
+                        <i class="bi bi-phone me-2"></i>
+                        UPI
+                    </label>
+
+                    <label class="payment-method">
+
+                        <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="CARD">
+
+                        <i class="bi bi-credit-card me-2"></i>
+                        Card
+                    </label>
+
+                    <label class="payment-method">
+
+                        <input
+                            type="radio"
+                            name="paymentMethod"
+                            value="COD">
+
+                        <i class="bi bi-cash-stack me-2"></i>
+                        Cash / Other
+                    </label>
+
+                </div>
+
+                <div class="alert alert-info small">
+
+                    <i class="bi bi-info-circle me-1"></i>
+
+                    This is a simulated payment for the AgriConnect
+                    academic project. No real money will be charged.
+
+                </div>
+
+                <button
+                    id="payButton"
+                    class="btn btn-success btn-lg w-100">
+
+                    <i class="bi bi-lock-fill me-1"></i>
+                    Pay Now
+                </button>
+
+                <a
+                    href="farmer-my-rentals.html"
+                    class="btn btn-outline-secondary w-100 mt-2">
+
+                    Back to My Rentals
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</main>
+
+<footer class="agri-footer mt-auto">
+
+    <div class="container text-center">
+
+        <p class="mb-0 small text-white-50">
+            AgriConnect • Farmer Module
+        </p>
+
+    </div>
+
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="auth.js"></script>
+<script src="farmer-api.js"></script>
+
+<script>
+
+let currentUser = null;
+let rental = null;
+
+const params = new URLSearchParams(window.location.search);
+const rentalId = params.get('rentalId');
+
+
+document.addEventListener('DOMContentLoaded', async () => {
+
+    const user = AgriAuth.requireAuth('FARMER');
+
+    if (!user) return;
+
+    currentUser = user;
+
+    AgriAuth.renderNavbar(
+        'navbar-container',
+        'my-rentals'
+    );
+
+    if (!rentalId) {
+
+        showAlert(
+            'danger',
+            'Rental ID is missing.'
+        );
+
+        return;
+    }
+
+    await loadRental();
+
+    document
+        .getElementById('payButton')
+        .addEventListener('click', processPayment);
+});
+
+
+async function loadRental() {
+
+    try {
+
+        const response = await FarmerAPI.get(
+            `/api/equipment-rentals/${rentalId}`
+        );
+
+        if (!response.ok) {
+
+            showAlert(
+                'danger',
+                response.data?.error ||
+                'Failed to load rental details.'
+            );
+
+            return;
+        }
+
+        rental = response.data;
+
+        if (!rental) {
+
+            showAlert(
+                'danger',
+                'Rental details were not found.'
+            );
+
+            return;
+        }
+
+        if (rental.renter?.id !== currentUser.id) {
+
+            showAlert(
+                'danger',
+                'You are not authorized to pay for this rental.'
+            );
+
+            return;
+        }
+
+        if (rental.status !== 'APPROVED') {
+
+            showAlert(
+                'warning',
+                'Payment is available only for approved rentals.'
+            );
+
+            return;
+        }
+
+        if (rental.paymentStatus === 'PAID') {
+
+            showAlert(
+                'info',
+                'This rental has already been paid.'
+            );
+
+            return;
+        }
+
+        renderRental();
+
+    } catch (error) {
+
+        console.error(error);
+
+        showAlert(
+            'danger',
+            'Unable to load rental details.'
+        );
+    }
+}
+
+
+function renderRental() {
+
+    const equipment = rental.equipment || {};
+    const owner = rental.owner || {};
+
+    document.getElementById('equipmentName').textContent =
+        equipment.name || '-';
+
+    document.getElementById('ownerName').textContent =
+        owner.name || '-';
+
+    document.getElementById('rentalDates').textContent =
+        `${formatDate(rental.startDate)} → ${formatDate(rental.endDate)}`;
+
+    document.getElementById('numberOfDays').textContent =
+        rental.numberOfDays || 0;
+
+    document.getElementById('rentalAmount').textContent =
+        `₹${formatAmount(rental.rentalAmount)}`;
+
+    document
+        .getElementById('loadingContainer')
+        .classList.add('d-none');
+
+    document
+        .getElementById('paymentContent')
+        .classList.remove('d-none');
+}
+
+
+async function processPayment() {
+
+    const button = document.getElementById('payButton');
+
+    const selectedMethod =
+        document.querySelector(
+            'input[name="paymentMethod"]:checked'
+        )?.value || 'UPI';
+
+    button.disabled = true;
+
+    button.innerHTML = `
+        <span class="spinner-border spinner-border-sm me-2"></span>
+        Processing Payment...
+    `;
+
+    try {
+
+        const payload = {
+
+            rentalId: rental.id,
+
+            renterId: currentUser.id,
+
+            amount: rental.rentalAmount,
+
+            method: selectedMethod,
+
+            simulateSuccess: true
+        };
+
+        const response = await FarmerAPI.post(
+            '/api/equipment-rental-payments',
+            payload
+        );
+
+        if (response.ok) {
+
+            showAlert(
+                'success',
+                'Payment successful! Your equipment rental is now paid.'
+            );
+
+            button.innerHTML = `
+                <i class="bi bi-check-circle me-1"></i>
+                Payment Successful
+            `;
+
+            button.classList.remove('btn-success');
+            button.classList.add('btn-secondary');
+
+            setTimeout(() => {
+
+                window.location.href =
+                    'farmer-my-rentals.html';
+
+            }, 1500);
+
+        } else {
+
+            showAlert(
+                'danger',
+                response.data?.error ||
+                'Payment failed.'
+            );
+
+            resetPayButton();
+        }
+
+    } catch (error) {
+
+        console.error(error);
+
+        showAlert(
+            'danger',
+            'Unable to process payment.'
+        );
+
+        resetPayButton();
+    }
+}
+
+
+function resetPayButton() {
+
+    const button = document.getElementById('payButton');
+
+    button.disabled = false;
+
+    button.innerHTML = `
+        <i class="bi bi-lock-fill me-1"></i>
+        Pay Now
+    `;
+}
+
+
+function formatDate(dateString) {
+
+    if (!dateString) return '-';
+
+    const date = new Date(dateString);
+
+    return date.toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric'
+    });
+}
+
+
+function formatAmount(amount) {
+
+    return Number(amount || 0).toLocaleString(
+        'en-IN',
+        {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        }
+    );
+}
+
+
+function showAlert(type, message) {
+
+    document.getElementById('alertContainer').innerHTML = `
+
+        <div class="alert alert-${type} alert-dismissible fade show"
+             role="alert">
+
+            ${escapeHtml(message)}
+
+            <button
+                type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+            </button>
+
+        </div>
+
+    `;
+}
+
+
+function escapeHtml(value) {
+
+    return String(value ?? '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+}
+
+</script>
+
+</body>
+</html>

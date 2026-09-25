@@ -1,0 +1,1286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Reviews & Ratings - AgriConnect</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- AgriConnect Design System -->
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* ── Star rating styles ── */
+        .star-rating-interactive {
+            display: inline-flex;
+            gap: 0.35rem;
+            font-size: 1.75rem;
+            cursor: pointer;
+            color: #D1D5DB;
+            transition: color 0.15s ease;
+        }
+        .star-rating-interactive i {
+            transition: transform 0.15s ease, color 0.15s ease;
+        }
+        .star-rating-interactive i:hover {
+            transform: scale(1.2);
+        }
+        .star-rating-interactive i.active {
+            color: #F59E0B;
+        }
+        .star-display-gold {
+            color: #F59E0B;
+            display: inline-flex;
+            gap: 0.15rem;
+            align-items: center;
+        }
+        .star-display-gold i.empty {
+            color: #E5E7EB;
+        }
+
+        /* ── Rating breakdown bar ── */
+        .rating-bar-container {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.4rem;
+            font-size: 0.85rem;
+        }
+        .rating-bar-label {
+            min-width: 48px;
+            color: #4B5563;
+            font-weight: 600;
+        }
+        .rating-bar-progress {
+            flex-grow: 1;
+            height: 8px;
+            background: #F3F4F6;
+            border-radius: 999px;
+            overflow: hidden;
+        }
+        .rating-bar-fill {
+            height: 100%;
+            background: #F59E0B;
+            border-radius: 999px;
+            transition: width 0.3s ease;
+        }
+        .rating-bar-count {
+            min-width: 35px;
+            text-align: right;
+            color: #6B7280;
+            font-weight: 500;
+            font-size: 0.8rem;
+        }
+
+        /* ── Big score badge ── */
+        .score-card {
+            background: #FFFBEB;
+            border: 1px solid #FDE68A;
+            border-radius: 16px;
+            padding: 1.5rem;
+            text-align: center;
+        }
+        .score-number {
+            font-size: 3rem;
+            font-weight: 900;
+            color: #B45309;
+            line-height: 1;
+            margin-bottom: 0.35rem;
+        }
+        .score-sub {
+            font-size: 0.82rem;
+            color: #92400E;
+            font-weight: 600;
+        }
+
+        /* ── Review card ── */
+        .review-card {
+            background: #fff;
+            border: 1px solid #E5E7EB;
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: box-shadow 0.15s ease, transform 0.15s ease;
+        }
+        .review-card:hover {
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+        }
+        .review-card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid #F3F4F6;
+        }
+        .review-product-name {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #111827;
+        }
+        .review-date {
+            font-size: 0.78rem;
+            color: #6B7280;
+        }
+        .review-comment {
+            font-size: 0.92rem;
+            color: #374151;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            white-space: pre-line;
+            word-break: break-word;
+        }
+        .review-author-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            background: #F0FDF4;
+            color: #166534;
+            border: 1px solid #BBF7D0;
+            border-radius: 999px;
+            padding: 0.2rem 0.65rem;
+            font-size: 0.78rem;
+            font-weight: 600;
+        }
+
+        /* ── Tabs custom ── */
+        .review-nav-tabs .nav-link {
+            color: #4B5563;
+            font-weight: 600;
+            border: none;
+            border-bottom: 3px solid transparent;
+            padding: 0.75rem 1.25rem;
+            border-radius: 0;
+            background: transparent;
+        }
+        .review-nav-tabs .nav-link:hover {
+            color: #16A34A;
+        }
+        .review-nav-tabs .nav-link.active {
+            color: #16A34A;
+            border-bottom-color: #16A34A;
+            background: transparent;
+        }
+
+        /* ── Empty state ── */
+        .empty-reviews-state {
+            text-align: center;
+            padding: 3.5rem 1.5rem;
+            background: #fff;
+            border: 2px dashed #E5E7EB;
+            border-radius: 16px;
+        }
+        .empty-reviews-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: #FEF3C7;
+            color: #D97706;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            margin: 0 auto 1.25rem;
+        }
+
+        /* ── Skeleton shimmer ── */
+        .skeleton {
+            background: linear-gradient(90deg, #F3F4F6 25%, #E5E7EB 50%, #F3F4F6 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.4s infinite;
+            border-radius: 8px;
+        }
+        @keyframes shimmer {
+            0%   { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================
+         NAVBAR
+    ============================= -->
+    <div id="navbar-container"></div>
+
+    <!-- ============================
+         PAGE HEADER
+    ============================= -->
+    <div class="bg-white border-bottom py-3 mb-4">
+        <div class="container">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <a href="customer-dashboard.html" class="btn btn-outline-secondary btn-sm" title="Back to Dashboard">
+                        <i class="bi bi-arrow-left"></i>
+                    </a>
+                    <div>
+                        <h2 class="fw-bold text-dark m-0 d-flex align-items-center gap-2">
+                            <i class="bi bi-star-fill text-warning"></i> Reviews & Ratings
+                        </h2>
+                        <p class="text-muted small m-0">Share verified harvest feedback, review produce quality, and manage ratings</p>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="customer-orders.html" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-receipt-cutoff me-1"></i> My Orders
+                    </a>
+                    <a href="customer-marketplace.html" class="btn btn-agri-primary btn-sm">
+                        <i class="bi bi-shop me-1"></i> Marketplace
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================
+         MAIN CONTENT
+    ============================= -->
+    <main class="container pb-5">
+
+        <!-- Alert Container -->
+        <div id="alertContainer" class="mb-4"></div>
+
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-tabs review-nav-tabs mb-4" id="reviewTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="tabMyReviewsBtn" data-bs-toggle="tab" data-bs-target="#tabMyReviews" type="button" role="tab" aria-selected="true" onclick="onSwitchTab('my-reviews')">
+                    <i class="bi bi-person-lines-fill me-1"></i> My Reviews (<span id="myReviewsCount">0</span>)
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tabProductReviewsBtn" data-bs-toggle="tab" data-bs-target="#tabProductReviews" type="button" role="tab" aria-selected="false" onclick="onSwitchTab('product-reviews')">
+                    <i class="bi bi-basket3 me-1"></i> Product Reviews & Summary
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="tabWriteReviewBtn" data-bs-toggle="tab" data-bs-target="#tabWriteReview" type="button" role="tab" aria-selected="false" onclick="onSwitchTab('write-review')">
+                    <i class="bi bi-pencil-square me-1"></i> Write a Review
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Panes Content -->
+        <div class="tab-content" id="reviewTabsContent">
+
+            <!-- ──────────────────────────────────────────────
+                 TAB 1: MY REVIEWS
+            ─────────────────────────────────────────────── -->
+            <div class="tab-pane fade show active" id="tabMyReviews" role="tabpanel">
+                <!-- Skeleton Loader -->
+                <div id="myReviewsSkeleton" class="row g-3">
+                    <div class="col-md-6">
+                        <div class="review-card">
+                            <div class="skeleton mb-3" style="height:22px;width:50%;"></div>
+                            <div class="skeleton mb-2" style="height:16px;width:30%;"></div>
+                            <div class="skeleton mb-2" style="height:14px;width:90%;"></div>
+                            <div class="skeleton" style="height:14px;width:70%;"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="review-card">
+                            <div class="skeleton mb-3" style="height:22px;width:45%;"></div>
+                            <div class="skeleton mb-2" style="height:16px;width:30%;"></div>
+                            <div class="skeleton mb-2" style="height:14px;width:85%;"></div>
+                            <div class="skeleton" style="height:14px;width:60%;"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- List container -->
+                <div id="myReviewsList" class="row g-3"></div>
+            </div>
+
+            <!-- ──────────────────────────────────────────────
+                 TAB 2: PRODUCT REVIEWS & SUMMARY
+            ─────────────────────────────────────────────── -->
+            <div class="tab-pane fade" id="tabProductReviews" role="tabpanel">
+                <!-- Product selector header -->
+                <div class="agri-card p-3 mb-4">
+                    <div class="row align-items-center g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark small mb-1" for="productSelectDropdown">
+                                <i class="bi bi-search text-success me-1"></i> Select Agricultural Produce to View Ratings:
+                            </label>
+                            <select id="productSelectDropdown" class="form-select" onchange="onProductSelectChanged()">
+                                <option value="">-- Choose a Product --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6 text-md-end">
+                            <button type="button" class="btn btn-outline-success btn-sm" onclick="reloadSelectedProductReviews()">
+                                <i class="bi bi-arrow-clockwise me-1"></i> Refresh Summary
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Product Summary & Reviews Container -->
+                <div id="productReviewsArea">
+                    <div class="empty-reviews-state" id="noProductSelectedState">
+                        <div class="empty-reviews-icon"><i class="bi bi-hand-index-thumb"></i></div>
+                        <h5 class="fw-bold text-dark mb-1">Select a Product to View Reviews</h5>
+                        <p class="text-muted small mb-0">Choose any product from the catalog above to view its average rating and verified customer reviews.</p>
+                    </div>
+
+                    <div id="productSummaryAndList" class="d-none">
+                        <div class="row g-4 mb-4">
+                            <!-- Left: Big score badge -->
+                            <div class="col-md-4">
+                                <div class="score-card h-100 d-flex flex-column justify-content-center">
+                                    <div class="score-number" id="summaryAvgRating">0.0</div>
+                                    <div class="mb-2" id="summaryStars"></div>
+                                    <div class="score-sub">Based on <span id="summaryTotalCount">0</span> verified review(s)</div>
+                                    <div class="text-muted small mt-1" id="summaryProdName"></div>
+                                </div>
+                            </div>
+                            <!-- Right: Rating distribution bars -->
+                            <div class="col-md-8">
+                                <div class="agri-card p-4 h-100">
+                                    <h6 class="fw-bold text-dark mb-3">Rating Breakdown</h6>
+                                    <!-- 5 stars -->
+                                    <div class="rating-bar-container">
+                                        <span class="rating-bar-label">5 <i class="bi bi-star-fill text-warning small"></i></span>
+                                        <div class="rating-bar-progress">
+                                            <div class="rating-bar-fill" id="bar5" style="width: 0%;"></div>
+                                        </div>
+                                        <span class="rating-bar-count" id="count5">0</span>
+                                    </div>
+                                    <!-- 4 stars -->
+                                    <div class="rating-bar-container">
+                                        <span class="rating-bar-label">4 <i class="bi bi-star-fill text-warning small"></i></span>
+                                        <div class="rating-bar-progress">
+                                            <div class="rating-bar-fill" id="bar4" style="width: 0%;"></div>
+                                        </div>
+                                        <span class="rating-bar-count" id="count4">0</span>
+                                    </div>
+                                    <!-- 3 stars -->
+                                    <div class="rating-bar-container">
+                                        <span class="rating-bar-label">3 <i class="bi bi-star-fill text-warning small"></i></span>
+                                        <div class="rating-bar-progress">
+                                            <div class="rating-bar-fill" id="bar3" style="width: 0%;"></div>
+                                        </div>
+                                        <span class="rating-bar-count" id="count3">0</span>
+                                    </div>
+                                    <!-- 2 stars -->
+                                    <div class="rating-bar-container">
+                                        <span class="rating-bar-label">2 <i class="bi bi-star-fill text-warning small"></i></span>
+                                        <div class="rating-bar-progress">
+                                            <div class="rating-bar-fill" id="bar2" style="width: 0%;"></div>
+                                        </div>
+                                        <span class="rating-bar-count" id="count2">0</span>
+                                    </div>
+                                    <!-- 1 star -->
+                                    <div class="rating-bar-container">
+                                        <span class="rating-bar-label">1 <i class="bi bi-star-fill text-warning small"></i></span>
+                                        <div class="rating-bar-progress">
+                                            <div class="rating-bar-fill" id="bar1" style="width: 0%;"></div>
+                                        </div>
+                                        <span class="rating-bar-count" id="count1">0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Product customer reviews list -->
+                        <div class="d-flex align-items-center justify-content-between mb-3">
+                            <h5 class="fw-bold text-dark m-0">Customer Feedback</h5>
+                            <button type="button" class="btn btn-outline-success btn-sm" onclick="switchToWriteTabForCurrentProduct()">
+                                <i class="bi bi-pencil-square me-1"></i> Review this Produce
+                            </button>
+                        </div>
+                        <div id="productReviewsList" class="row g-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ──────────────────────────────────────────────
+                 TAB 3: WRITE A REVIEW
+            ─────────────────────────────────────────────── -->
+            <div class="tab-pane fade" id="tabWriteReview" role="tabpanel">
+                <div class="row justify-content-center">
+                    <div class="col-lg-8">
+                        <div class="agri-card p-4">
+                            <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+                                <i class="bi bi-star-fill text-warning fs-4"></i>
+                                <div>
+                                    <h5 class="fw-bold text-dark m-0">Submit Produce Review</h5>
+                                    <small class="text-muted">Rate your harvest purchase and share honest quality feedback</small>
+                                </div>
+                            </div>
+
+                            <form id="writeReviewForm" onsubmit="submitNewReview(event)">
+                                <!-- Product selector -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-dark small" for="writeProductSelect">
+                                        Select Purchased Product <span class="text-danger">*</span>
+                                    </label>
+                                    <select id="writeProductSelect" class="form-select" required>
+                                        <option value="">-- Select Product --</option>
+                                    </select>
+                                    <div class="form-text small text-muted">
+                                        <i class="bi bi-shield-check text-success"></i> Only produce items purchased in completed orders can be reviewed.
+                                    </div>
+                                </div>
+
+                                <!-- Star rating selector -->
+                                <div class="mb-3">
+                                    <label class="form-label fw-bold text-dark small d-block">
+                                        Overall Rating <span class="text-danger">*</span>
+                                    </label>
+                                    <div class="star-rating-interactive" id="createStarRating" onmouseleave="resetStarHover('create')">
+                                        <i class="bi bi-star" data-val="1" onmouseover="hoverStar('create', 1)" onclick="setStarRating('create', 1)"></i>
+                                        <i class="bi bi-star" data-val="2" onmouseover="hoverStar('create', 2)" onclick="setStarRating('create', 2)"></i>
+                                        <i class="bi bi-star" data-val="3" onmouseover="hoverStar('create', 3)" onclick="setStarRating('create', 3)"></i>
+                                        <i class="bi bi-star" data-val="4" onmouseover="hoverStar('create', 4)" onclick="setStarRating('create', 4)"></i>
+                                        <i class="bi bi-star" data-val="5" onmouseover="hoverStar('create', 5)" onclick="setStarRating('create', 5)"></i>
+                                    </div>
+                                    <span class="ms-2 fw-semibold text-warning small" id="createRatingLabel">Select Rating (1 to 5 Stars)</span>
+                                </div>
+
+                                <!-- Comment textarea -->
+                                <div class="mb-3">
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label class="form-label fw-bold text-dark small m-0" for="writeComment">
+                                            Your Review / Feedback
+                                        </label>
+                                        <span class="text-muted small" id="createCharCount">0 / 2000 characters</span>
+                                    </div>
+                                    <textarea id="writeComment" class="form-control" rows="4" maxlength="2000"
+                                              placeholder="Share details about harvest freshness, packaging, aroma, or overall experience…"
+                                              oninput="updateCharCount('writeComment', 'createCharCount')"></textarea>
+                                </div>
+
+                                <div class="d-flex justify-content-end gap-2 pt-2">
+                                    <button type="reset" class="btn btn-outline-secondary btn-sm px-4" onclick="resetCreateForm()">
+                                        Clear
+                                    </button>
+                                    <button type="submit" class="btn btn-success btn-sm px-4 fw-bold" id="submitReviewBtn">
+                                        <span id="submitSpinner" class="spinner-border spinner-border-sm d-none me-1" role="status"></span>
+                                        <i class="bi bi-send-fill me-1"></i> Submit Review
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- ============================
+         EDIT REVIEW MODAL
+    ============================= -->
+    <div class="modal fade" id="editReviewModal" tabindex="-1" aria-labelledby="editReviewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius:16px;overflow:hidden;">
+                <div class="modal-header bg-light border-bottom">
+                    <h5 class="modal-title fw-bold text-dark" id="editReviewModalLabel">
+                        <i class="bi bi-pencil-square text-success me-1"></i> Edit Review
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="editReviewForm" onsubmit="submitEditReview(event)">
+                    <div class="modal-body p-4">
+                        <input type="hidden" id="editReviewId">
+
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-semibold">Product</label>
+                            <input type="text" id="editProductName" class="form-control bg-light" readonly>
+                        </div>
+
+                        <!-- Editable star rating -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-dark small d-block">Rating *</label>
+                            <div class="star-rating-interactive" id="editStarRating" onmouseleave="resetStarHover('edit')">
+                                <i class="bi bi-star" data-val="1" onmouseover="hoverStar('edit', 1)" onclick="setStarRating('edit', 1)"></i>
+                                <i class="bi bi-star" data-val="2" onmouseover="hoverStar('edit', 2)" onclick="setStarRating('edit', 2)"></i>
+                                <i class="bi bi-star" data-val="3" onmouseover="hoverStar('edit', 3)" onclick="setStarRating('edit', 3)"></i>
+                                <i class="bi bi-star" data-val="4" onmouseover="hoverStar('edit', 4)" onclick="setStarRating('edit', 4)"></i>
+                                <i class="bi bi-star" data-val="5" onmouseover="hoverStar('edit', 5)" onclick="setStarRating('edit', 5)"></i>
+                            </div>
+                            <span class="ms-2 fw-semibold text-warning small" id="editRatingLabel"></span>
+                        </div>
+
+                        <!-- Editable comment -->
+                        <div class="mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-1">
+                                <label class="form-label fw-bold text-dark small m-0" for="editComment">Review Comment</label>
+                                <span class="text-muted small" id="editCharCount">0 / 2000</span>
+                            </div>
+                            <textarea id="editComment" class="form-control" rows="4" maxlength="2000"
+                                      oninput="updateCharCount('editComment', 'editCharCount')"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top bg-light">
+                        <button type="button" class="btn btn-outline-secondary btn-sm px-3" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-success btn-sm px-4 fw-bold" id="saveEditBtn">
+                            <span id="editSpinner" class="spinner-border spinner-border-sm d-none me-1" role="status"></span>
+                            Save Changes
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================
+         DELETE CONFIRMATION MODAL
+    ============================= -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content" style="border-radius:16px;overflow:hidden;">
+                <div class="modal-body p-4 text-center">
+                    <div class="mx-auto mb-3 d-inline-flex align-items-center justify-content-center"
+                         style="width:56px;height:56px;border-radius:50%;background:#FFF1F2;color:#BE123C;font-size:1.75rem;">
+                        <i class="bi bi-trash3"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2 text-dark">Delete this Review?</h5>
+                    <p class="text-muted small mb-4" id="deleteConfirmText">
+                        Your rating and feedback will be removed permanently from the product summary.
+                    </p>
+                    <div class="d-flex gap-2 justify-content-center">
+                        <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-danger px-4" id="confirmDeleteBtn" onclick="executeDeleteReview()">
+                            <span id="deleteSpinner" class="spinner-border spinner-border-sm d-none me-1" role="status"></span>
+                            Delete Review
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================
+         FOOTER
+    ============================= -->
+    <footer class="agri-footer mt-auto">
+        <div class="container text-center">
+            <p class="mb-0 small text-white-50">
+                AgriConnect &bull; Customer Reviews & Ratings &bull; Phase 4
+            </p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- AgriConnect auth + farmer API -->
+    <script src="auth.js"></script>
+    <script src="farmer-api.js"></script>
+
+    <script>
+    /* =====================================================================
+       AgriConnect – Customer Reviews & Ratings Page (Phase 4)
+       Backend Source of Truth:
+         POST   /api/reviews
+         GET    /api/reviews/product/{productId}
+         GET    /api/reviews/product/{productId}/summary
+         GET    /api/reviews/customer/{customerId}
+         GET    /api/reviews/{id}
+         PUT    /api/reviews/{id}
+         DELETE /api/reviews/{id}
+       Auth: session-cookie via AgriAuth (No Bearer / JWT)
+    ===================================================================== */
+
+    let currentUser        = null;
+    let myReviews          = [];
+    let allProductsMap     = new Map(); // id -> ProductDto
+    let selectedProductId  = null;
+    let pendingDeleteId    = null;
+
+    // Active ratings state
+    let ratingState = {
+        create: 5,
+        edit: 5
+    };
+
+    const RATING_TEXT = {
+        1: '1 - Poor Quality',
+        2: '2 - Fair Quality',
+        3: '3 - Good Produce',
+        4: '4 - Very Good Produce',
+        5: '5 - Excellent Harvest'
+    };
+
+    /* ──────────────────────────────────────────────
+       BOOT
+    ─────────────────────────────────────────────── */
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Require CUSTOMER auth
+        currentUser = AgriAuth.requireAuth('CUSTOMER');
+        if (!currentUser) return;
+
+        // Render standardized navbar
+        AgriAuth.renderNavbar('navbar-container', 'reviews');
+
+        // Check URL parameters (e.g. ?productId=12)
+        const urlParams = new URLSearchParams(window.location.search);
+        const paramProdId = urlParams.get('productId');
+
+        // Set default rating UI
+        setStarRating('create', 5);
+
+        // Load catalog and customer reviews
+        await loadAllProducts();
+        await loadMyReviews();
+
+        if (paramProdId && !isNaN(parseInt(paramProdId, 10))) {
+            selectedProductId = parseInt(paramProdId, 10);
+            // Switch to product reviews tab
+            const tabBtn = document.getElementById('tabProductReviewsBtn');
+            if (tabBtn) {
+                bootstrap.Tab.getOrCreateInstance(tabBtn).show();
+            }
+            const dropdown = document.getElementById('productSelectDropdown');
+            if (dropdown) dropdown.value = selectedProductId;
+            const writeDropdown = document.getElementById('writeProductSelect');
+            if (writeDropdown) writeDropdown.value = selectedProductId;
+
+            await loadProductReviewsAndSummary(selectedProductId);
+        }
+    });
+
+    /* ──────────────────────────────────────────────
+       HELPERS & FORMATTERS
+    ─────────────────────────────────────────────── */
+    function escHtml(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function formatDate(raw) {
+        if (!raw) return '—';
+        try {
+            const d = new Date(raw);
+            return d.toLocaleString('en-IN', {
+                day: '2-digit',
+                month: 'short',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (e) {
+            return String(raw);
+        }
+    }
+
+    function renderStarDisplay(score) {
+        const full = Math.min(5, Math.max(0, Math.round(score || 0)));
+        let html = '<div class="star-display-gold">';
+        for (let i = 1; i <= 5; i++) {
+            if (i <= full) {
+                html += '<i class="bi bi-star-fill"></i>';
+            } else {
+                html += '<i class="bi bi-star empty"></i>';
+            }
+        }
+        html += ` <strong class="ms-1 text-dark">${score ? Number(score).toFixed(1) : '0.0'}</strong></div>`;
+        return html;
+    }
+
+    function showAlert(type, msg) {
+        const c = document.getElementById('alertContainer');
+        if (!c) return;
+        const icon = type === 'success' ? 'check-circle-fill' : 'exclamation-triangle-fill';
+        c.innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+                <i class="bi bi-${icon}"></i>
+                <div>${escHtml(msg)}</div>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>`;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function updateCharCount(textareaId, countDisplayId) {
+        const txt = document.getElementById(textareaId);
+        const countEl = document.getElementById(countDisplayId);
+        if (txt && countEl) {
+            countEl.textContent = `${txt.value.length} / 2000 characters`;
+        }
+    }
+
+    /* ──────────────────────────────────────────────
+       INTERACTIVE STAR CONTROLS
+    ─────────────────────────────────────────────── */
+    function hoverStar(mode, val) {
+        const container = document.getElementById(`${mode}StarRating`);
+        if (!container) return;
+        const stars = container.querySelectorAll('i');
+        stars.forEach(s => {
+            const starVal = parseInt(s.getAttribute('data-val'), 10);
+            if (starVal <= val) {
+                s.className = 'bi bi-star-fill active';
+            } else {
+                s.className = 'bi bi-star';
+            }
+        });
+        const label = document.getElementById(`${mode}RatingLabel`);
+        if (label) label.textContent = RATING_TEXT[val] || `${val} Stars`;
+    }
+
+    function resetStarHover(mode) {
+        const currentVal = ratingState[mode] || 5;
+        setStarRating(mode, currentVal);
+    }
+
+    function setStarRating(mode, val) {
+        ratingState[mode] = val;
+        const container = document.getElementById(`${mode}StarRating`);
+        if (!container) return;
+        const stars = container.querySelectorAll('i');
+        stars.forEach(s => {
+            const starVal = parseInt(s.getAttribute('data-val'), 10);
+            if (starVal <= val) {
+                s.className = 'bi bi-star-fill active';
+            } else {
+                s.className = 'bi bi-star';
+            }
+        });
+        const label = document.getElementById(`${mode}RatingLabel`);
+        if (label) label.textContent = RATING_TEXT[val] || `${val} Stars`;
+    }
+
+    /* ──────────────────────────────────────────────
+       API WRAPPERS (Session-cookie, no Bearer token)
+    ─────────────────────────────────────────────── */
+    async function apiGet(path) {
+        const resp = await fetch(path, { credentials: 'include' });
+        const data = await resp.json().catch(() => ({}));
+        return { ok: resp.ok, status: resp.status, data };
+    }
+
+    async function apiPost(path, body) {
+        const resp = await fetch(path, {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        const data = await resp.json().catch(() => ({}));
+        return { ok: resp.ok, status: resp.status, data };
+    }
+
+    async function apiPut(path, body) {
+        const resp = await fetch(path, {
+            method: 'PUT',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        const data = await resp.json().catch(() => ({}));
+        return { ok: resp.ok, status: resp.status, data };
+    }
+
+    async function apiDelete(path) {
+        const resp = await fetch(path, {
+            method: 'DELETE',
+            credentials: 'include'
+        });
+        const data = await resp.json().catch(() => ({}));
+        return { ok: resp.ok, status: resp.status, data };
+    }
+
+    /* ──────────────────────────────────────────────
+       LOAD PRODUCT CATALOG
+    ─────────────────────────────────────────────── */
+    async function loadAllProducts() {
+        try {
+            const res = await apiGet('/api/products');
+            if (res.ok && Array.isArray(res.data)) {
+                allProductsMap.clear();
+                const dropdown = document.getElementById('productSelectDropdown');
+                const writeDropdown = document.getElementById('writeProductSelect');
+
+                if (dropdown) dropdown.innerHTML = '<option value="">-- Choose a Product to View --</option>';
+                if (writeDropdown) writeDropdown.innerHTML = '<option value="">-- Select Product to Review --</option>';
+
+                res.data.forEach(p => {
+                    allProductsMap.set(p.id, p);
+                    const opt = `<option value="${p.id}">${escHtml(p.name)} (${escHtml(p.category || 'Produce')})</option>`;
+                    if (dropdown) dropdown.innerHTML += opt;
+                    if (writeDropdown) writeDropdown.innerHTML += opt;
+                });
+            }
+        } catch (e) {
+            console.warn('[Reviews] Failed to preload product catalog:', e);
+        }
+    }
+
+    /* ──────────────────────────────────────────────
+       LOAD MY REVIEWS (GET /api/reviews/customer/{id})
+    ─────────────────────────────────────────────── */
+    async function loadMyReviews() {
+        const skeleton = document.getElementById('myReviewsSkeleton');
+        const list     = document.getElementById('myReviewsList');
+        const countEl  = document.getElementById('myReviewsCount');
+
+        if (skeleton) skeleton.classList.remove('d-none');
+        if (list)     list.innerHTML = '';
+
+        try {
+            const res = await apiGet(`/api/reviews/customer/${currentUser.id}?userId=${currentUser.id}`);
+            if (skeleton) skeleton.classList.add('d-none');
+
+            if (!res.ok) {
+                showAlert('danger', `Failed to load your reviews (${res.status}).`);
+                return;
+            }
+
+            myReviews = Array.isArray(res.data) ? res.data : [];
+            if (countEl) countEl.textContent = myReviews.length;
+
+            if (myReviews.length === 0) {
+                list.innerHTML = `
+                    <div class="col-12">
+                        <div class="empty-reviews-state">
+                            <div class="empty-reviews-icon"><i class="bi bi-star"></i></div>
+                            <h4 class="fw-bold text-dark mb-1">No Reviews Written Yet</h4>
+                            <p class="text-muted small mb-4" style="max-width:380px;margin:0 auto;">
+                                You haven't shared feedback on any farm harvests yet. Once an order is completed, review your produce to help local farmers.
+                            </p>
+                            <div class="d-flex gap-2 justify-content-center">
+                                <a href="customer-orders.html" class="btn btn-success px-4">
+                                    <i class="bi bi-receipt-cutoff me-1"></i> View Completed Orders
+                                </a>
+                                <a href="customer-marketplace.html" class="btn btn-outline-secondary px-4">
+                                    <i class="bi bi-shop me-1"></i> Browse Marketplace
+                                </a>
+                            </div>
+                        </div>
+                    </div>`;
+                return;
+            }
+
+            // Newest first
+            myReviews.sort((a, b) => {
+                const da = a.createdAt ? new Date(a.createdAt) : 0;
+                const db = b.createdAt ? new Date(b.createdAt) : 0;
+                return db - da;
+            });
+
+            list.innerHTML = myReviews.map(renderMyReviewCard).join('');
+
+        } catch (err) {
+            if (skeleton) skeleton.classList.add('d-none');
+            console.error('[Reviews] loadMyReviews error:', err);
+            showAlert('danger', 'Network error loading your submitted reviews.');
+        }
+    }
+
+    function renderMyReviewCard(rev) {
+        const prod = allProductsMap.get(rev.productId);
+        const prodName = rev.productName || (prod ? prod.name : `Product #${rev.productId}`);
+        const farmerName = rev.farmerName || (prod ? prod.farmerName : null);
+
+        return `
+        <div class="col-md-6" id="my-review-card-${rev.id}">
+            <div class="review-card h-100 d-flex flex-column">
+                <div class="review-card-header">
+                    <div>
+                        <div class="review-product-name">${escHtml(prodName)}</div>
+                        <div class="review-date">
+                            <i class="bi bi-calendar-event me-1"></i> Reviewed on ${formatDate(rev.createdAt)}
+                            ${rev.updatedAt ? `<span class="text-muted fst-italic ms-1">(Edited)</span>` : ''}
+                        </div>
+                    </div>
+                    <div>
+                        ${renderStarDisplay(rev.rating)}
+                    </div>
+                </div>
+
+                <!-- Comment -->
+                <div class="review-comment flex-grow-1">
+                    ${rev.comment ? `"${escHtml(rev.comment)}"` : '<span class="text-muted fst-italic small">No written review comment provided.</span>'}
+                </div>
+
+                <!-- Footer & Actions -->
+                <div class="d-flex align-items-center justify-content-between pt-2 border-top mt-2 flex-wrap gap-2">
+                    ${farmerName ? `
+                    <span class="review-author-badge">
+                        <i class="bi bi-person-check"></i> Farmer: ${escHtml(farmerName)}
+                    </span>` : '<span></span>'}
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-outline-primary"
+                                onclick="openProductReviewTab(${rev.productId})" title="View Product Summary">
+                            <i class="bi bi-eye"></i> View Summary
+                        </button>
+                        <button type="button" class="btn btn-outline-success"
+                                onclick="openEditReviewModal(${rev.id})" title="Edit Review">
+                            <i class="bi bi-pencil"></i> Edit
+                        </button>
+                        <button type="button" class="btn btn-outline-danger"
+                                onclick="initDeleteReview(${rev.id})" title="Delete Review">
+                            <i class="bi bi-trash"></i> Delete
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+    }
+
+    /* ──────────────────────────────────────────────
+       PRODUCT REVIEWS & SUMMARY
+    ─────────────────────────────────────────────── */
+    async function onProductSelectChanged() {
+        const dropdown = document.getElementById('productSelectDropdown');
+        const val = dropdown ? dropdown.value : null;
+        if (!val) {
+            selectedProductId = null;
+            document.getElementById('noProductSelectedState').classList.remove('d-none');
+            document.getElementById('productSummaryAndList').classList.add('d-none');
+            return;
+        }
+        selectedProductId = parseInt(val, 10);
+        await loadProductReviewsAndSummary(selectedProductId);
+    }
+
+    async function reloadSelectedProductReviews() {
+        if (selectedProductId) {
+            await loadProductReviewsAndSummary(selectedProductId);
+        } else {
+            showAlert('warning', 'Please select a product first to reload reviews.');
+        }
+    }
+
+    function openProductReviewTab(prodId) {
+        selectedProductId = prodId;
+        const dropdown = document.getElementById('productSelectDropdown');
+        if (dropdown) dropdown.value = prodId;
+        const tabBtn = document.getElementById('tabProductReviewsBtn');
+        if (tabBtn) bootstrap.Tab.getOrCreateInstance(tabBtn).show();
+        loadProductReviewsAndSummary(prodId);
+    }
+
+    async function loadProductReviewsAndSummary(prodId) {
+        document.getElementById('noProductSelectedState').classList.add('d-none');
+        document.getElementById('productSummaryAndList').classList.remove('d-none');
+
+        const prodReviewsList = document.getElementById('productReviewsList');
+        prodReviewsList.innerHTML = `<div class="col-12 text-center py-4"><div class="spinner-border text-success"></div></div>`;
+
+        try {
+            // 1. Fetch Summary (GET /api/reviews/product/{productId}/summary)
+            const summaryRes = await apiGet(`/api/reviews/product/${prodId}/summary`);
+            if (summaryRes.ok && summaryRes.data) {
+                renderProductSummary(summaryRes.data);
+            }
+
+            // 2. Fetch Review List (GET /api/reviews/product/{productId})
+            const listRes = await apiGet(`/api/reviews/product/${prodId}`);
+            if (listRes.ok && Array.isArray(listRes.data)) {
+                renderProductReviewsList(listRes.data);
+            } else {
+                prodReviewsList.innerHTML = `<p class="text-muted small fst-italic">No reviews found.</p>`;
+            }
+
+        } catch (err) {
+            console.error('[Reviews] loadProductReviewsAndSummary error:', err);
+            showAlert('danger', 'Error loading review summary for this product.');
+        }
+    }
+
+    function renderProductSummary(summary) {
+        const avg = summary.averageRating || 0;
+        const total = summary.totalReviews || summary.totalReviewCount || 0;
+
+        document.getElementById('summaryAvgRating').textContent = avg.toFixed(1);
+        document.getElementById('summaryStars').innerHTML = renderStarDisplay(avg);
+        document.getElementById('summaryTotalCount').textContent = total;
+        document.getElementById('summaryProdName').textContent = summary.productName ? `For ${summary.productName}` : '';
+
+        const c1 = summary.oneStarReviews || 0;
+        const c2 = summary.twoStarReviews || 0;
+        const c3 = summary.threeStarReviews || 0;
+        const c4 = summary.fourStarReviews || 0;
+        const c5 = summary.fiveStarReviews || 0;
+
+        const p1 = total > 0 ? (c1 / total) * 100 : 0;
+        const p2 = total > 0 ? (c2 / total) * 100 : 0;
+        const p3 = total > 0 ? (c3 / total) * 100 : 0;
+        const p4 = total > 0 ? (c4 / total) * 100 : 0;
+        const p5 = total > 0 ? (c5 / total) * 100 : 0;
+
+        document.getElementById('bar5').style.width = `${p5}%`;
+        document.getElementById('count5').textContent = c5;
+        document.getElementById('bar4').style.width = `${p4}%`;
+        document.getElementById('count4').textContent = c4;
+        document.getElementById('bar3').style.width = `${p3}%`;
+        document.getElementById('count3').textContent = c3;
+        document.getElementById('bar2').style.width = `${p2}%`;
+        document.getElementById('count2').textContent = c2;
+        document.getElementById('bar1').style.width = `${p1}%`;
+        document.getElementById('count1').textContent = c1;
+    }
+
+    function renderProductReviewsList(reviews) {
+        const container = document.getElementById('productReviewsList');
+        if (!container) return;
+
+        if (reviews.length === 0) {
+            container.innerHTML = `
+                <div class="col-12">
+                    <div class="empty-reviews-state p-4">
+                        <div class="empty-reviews-icon" style="width:50px;height:50px;font-size:1.5rem;"><i class="bi bi-chat-left-dots"></i></div>
+                        <h6 class="fw-bold text-dark mb-1">No Customer Reviews Yet</h6>
+                        <p class="text-muted small mb-0">Be the first verified purchaser to rate this harvest!</p>
+                    </div>
+                </div>`;
+            return;
+        }
+
+        container.innerHTML = reviews.map(r => `
+            <div class="col-md-6">
+                <div class="review-card h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="bi bi-person-circle text-success fs-5"></i>
+                            <span class="fw-bold text-dark small">${escHtml(r.customerName || (r.customer && r.customer.name) || 'Verified Customer')}</span>
+                        </div>
+                        <div>${renderStarDisplay(r.rating)}</div>
+                    </div>
+                    <p class="review-comment mb-2">${r.comment ? `"${escHtml(r.comment)}"` : '<span class="text-muted fst-italic small">No comment text provided.</span>'}</p>
+                    <div class="text-muted" style="font-size:0.75rem;">
+                        <i class="bi bi-clock me-1"></i> ${formatDate(r.createdAt)}
+                    </div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    function switchToWriteTabForCurrentProduct() {
+        if (selectedProductId) {
+            const writeDropdown = document.getElementById('writeProductSelect');
+            if (writeDropdown) writeDropdown.value = selectedProductId;
+        }
+        const writeTabBtn = document.getElementById('tabWriteReviewBtn');
+        if (writeTabBtn) bootstrap.Tab.getOrCreateInstance(writeTabBtn).show();
+    }
+
+    /* ──────────────────────────────────────────────
+       SUBMIT NEW REVIEW (POST /api/reviews)
+    ─────────────────────────────────────────────── */
+    async function submitNewReview(e) {
+        e.preventDefault();
+
+        const prodSelect = document.getElementById('writeProductSelect');
+        const commentEl  = document.getElementById('writeComment');
+        const submitBtn  = document.getElementById('submitReviewBtn');
+        const spinner    = document.getElementById('submitSpinner');
+
+        const productId = parseInt(prodSelect.value, 10);
+        const rating    = ratingState.create || 5;
+        const comment   = (commentEl.value || '').trim();
+
+        if (!productId) {
+            showAlert('danger', 'Please select a product to review.');
+            return;
+        }
+
+        // Build ReviewRequest matching backend exactly:
+        // { customerId, productId, rating, comment }
+        const payload = {
+            customerId: currentUser.id,
+            productId:  productId,
+            rating:     rating,
+            comment:    comment
+        };
+
+        submitBtn.disabled = true;
+        if (spinner) spinner.classList.remove('d-none');
+
+        try {
+            const res = await apiPost(`/api/reviews?customerId=${currentUser.id}`, payload);
+
+            if (res.ok) {
+                showAlert('success', 'Thank you! Your harvest review has been submitted successfully.');
+                resetCreateForm();
+
+                // Refresh My Reviews
+                await loadMyReviews();
+
+                // Switch to My Reviews tab
+                const tabBtn = document.getElementById('tabMyReviewsBtn');
+                if (tabBtn) bootstrap.Tab.getOrCreateInstance(tabBtn).show();
+
+                // If currently viewing this product, reload its summary too
+                if (selectedProductId === productId) {
+                    await loadProductReviewsAndSummary(productId);
+                }
+
+            } else {
+                // Friendly error handling for backend validation
+                const rawError = res.data && (res.data.error || res.data.message || JSON.stringify(res.data));
+                if (rawError && rawError.toLowerCase().includes('purchased')) {
+                    showAlert('warning', 'Reviews are only available after purchasing this product through a valid order.');
+                } else if (rawError && rawError.toLowerCase().includes('already reviewed')) {
+                    showAlert('warning', 'You have already reviewed this product. Please use the Edit Review option in "My Reviews".');
+                } else {
+                    showAlert('danger', `Could not submit review: ${rawError || `Server returned ${res.status}`}`);
+                }
+            }
+
+        } catch (err) {
+            console.error('[Reviews] submitNewReview error:', err);
+            showAlert('danger', 'Network error. Could not reach the review service.');
+        } finally {
+            submitBtn.disabled = false;
+            if (spinner) spinner.classList.add('d-none');
+        }
+    }
+
+    function resetCreateForm() {
+        document.getElementById('writeReviewForm')?.reset();
+        setStarRating('create', 5);
+        updateCharCount('writeComment', 'createCharCount');
+    }
+
+    /* ──────────────────────────────────────────────
+       EDIT REVIEW (PUT /api/reviews/{id})
+    ─────────────────────────────────────────────── */
+    async function openEditReviewModal(reviewId) {
+        try {
+            const res = await apiGet(`/api/reviews/${reviewId}`);
+            if (!res.ok || !res.data) {
+                showAlert('danger', 'Could not load review details for editing.');
+                return;
+            }
+
+            const r = res.data;
+            document.getElementById('editReviewId').value = r.id;
+            document.getElementById('editProductName').value = r.productName || `Product #${r.productId}`;
+            document.getElementById('editComment').value = r.comment || '';
+
+            setStarRating('edit', r.rating || 5);
+            updateCharCount('editComment', 'editCharCount');
+
+            const modalEl = document.getElementById('editReviewModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+            modal.show();
+
+        } catch (err) {
+            console.error('[Reviews] openEditReviewModal error:', err);
+            showAlert('danger', 'Network error opening review editor.');
+        }
+    }
+
+    async function submitEditReview(e) {
+        e.preventDefault();
+
+        const reviewId  = document.getElementById('editReviewId').value;
+        const commentEl = document.getElementById('editComment');
+        const saveBtn   = document.getElementById('saveEditBtn');
+        const spinner   = document.getElementById('editSpinner');
+
+        const rating  = ratingState.edit || 5;
+        const comment = (commentEl.value || '').trim();
+
+        saveBtn.disabled = true;
+        if (spinner) spinner.classList.remove('d-none');
+
+        try {
+            const res = await apiPut(`/api/reviews/${reviewId}?customerId=${currentUser.id}`, {
+                rating: rating,
+                comment: comment
+            });
+
+            const modalEl = document.getElementById('editReviewModal');
+            const modalInst = bootstrap.Modal.getInstance(modalEl);
+            if (modalInst) modalInst.hide();
+
+            if (res.ok) {
+                showAlert('success', 'Your review was updated successfully.');
+                await loadMyReviews();
+                if (selectedProductId) {
+                    await loadProductReviewsAndSummary(selectedProductId);
+                }
+            } else {
+                const errMsg = res.data && (res.data.error || res.data.message || JSON.stringify(res.data));
+                showAlert('danger', `Could not update review: ${errMsg || `Server returned ${res.status}`}`);
+            }
+
+        } catch (err) {
+            console.error('[Reviews] submitEditReview error:', err);
+            showAlert('danger', 'Network error while updating review.');
+        } finally {
+            saveBtn.disabled = false;
+            if (spinner) spinner.classList.add('d-none');
+        }
+    }
+
+    /* ──────────────────────────────────────────────
+       DELETE REVIEW (DELETE /api/reviews/{id})
+    ─────────────────────────────────────────────── */
+    function initDeleteReview(reviewId) {
+        pendingDeleteId = reviewId;
+        const modalEl = document.getElementById('deleteConfirmModal');
+        const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+        modal.show();
+    }
+
+    async function executeDeleteReview() {
+        if (!pendingDeleteId) return;
+
+        const btn     = document.getElementById('confirmDeleteBtn');
+        const spinner = document.getElementById('deleteSpinner');
+
+        btn.disabled = true;
+        if (spinner) spinner.classList.remove('d-none');
+
+        try {
+            const res = await apiDelete(`/api/reviews/${pendingDeleteId}?customerId=${currentUser.id}`);
+
+            const modalEl = document.getElementById('deleteConfirmModal');
+            const modalInst = bootstrap.Modal.getInstance(modalEl);
+            if (modalInst) modalInst.hide();
+
+            if (res.ok) {
+                showAlert('success', 'Review deleted successfully.');
+                await loadMyReviews();
+                if (selectedProductId) {
+                    await loadProductReviewsAndSummary(selectedProductId);
+                }
+            } else {
+                const errMsg = res.data && (res.data.error || res.data.message || JSON.stringify(res.data));
+                showAlert('danger', `Could not delete review: ${errMsg || `Server returned ${res.status}`}`);
+            }
+
+        } catch (err) {
+            console.error('[Reviews] executeDeleteReview error:', err);
+            showAlert('danger', 'Network error while deleting review.');
+        } finally {
+            btn.disabled = false;
+            if (spinner) spinner.classList.add('d-none');
+            pendingDeleteId = null;
+        }
+    }
+
+    function onSwitchTab(tabName) {
+        // Tab transition callback
+    }
+
+    // Expose handlers to window for inline HTML onclick/change
+    window.hoverStar                       = hoverStar;
+    window.resetStarHover                  = resetStarHover;
+    window.setStarRating                   = setStarRating;
+    window.onProductSelectChanged          = onProductSelectChanged;
+    window.reloadSelectedProductReviews    = reloadSelectedProductReviews;
+    window.openProductReviewTab            = openProductReviewTab;
+    window.switchToWriteTabForCurrentProduct = switchToWriteTabForCurrentProduct;
+    window.submitNewReview                 = submitNewReview;
+    window.resetCreateForm                 = resetCreateForm;
+    window.openEditReviewModal             = openEditReviewModal;
+    window.submitEditReview                = submitEditReview;
+    window.initDeleteReview                = initDeleteReview;
+    window.executeDeleteReview             = executeDeleteReview;
+    window.updateCharCount                 = updateCharCount;
+    window.onSwitchTab                     = onSwitchTab;
+    </script>
+</body>
+</html>

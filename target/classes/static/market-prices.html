@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Market & MSP Prices - AgriConnect</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- AgriConnect Design System -->
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .price-hero {
+            background: linear-gradient(135deg, #1B5E20 0%, #2E7D32 60%, #388E3C 100%);
+            color: #FFFFFF;
+            border-radius: 16px;
+            padding: 1.75rem 2rem;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--agri-shadow-md);
+        }
+        .price-hero::after {
+            content: '';
+            position: absolute;
+            top: -50px; right: -60px;
+            width: 180px; height: 180px;
+            background: rgba(255,255,255,0.07);
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        .filter-bar {
+            background: #FFFFFF;
+            border: 1px solid var(--agri-border);
+            border-radius: 12px;
+            padding: 1rem 1.25rem;
+        }
+
+        /* Table tweaks */
+        #priceTable thead th {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--agri-muted);
+            background: #F9FAF9;
+            border-bottom: 1px solid var(--agri-border);
+            white-space: nowrap;
+        }
+        #priceTable tbody tr:hover {
+            background: #F1F8E9;
+        }
+        .price-value {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--agri-primary);
+        }
+
+        .demo-badge {
+            font-size: 0.68rem;
+            font-weight: 600;
+            padding: 0.2rem 0.5rem;
+            border-radius: 50rem;
+            background: #FFF8E1;
+            color: #F57F17;
+            border: 1px solid #FFE082;
+            display: inline-block;
+        }
+
+        .stat-pill {
+            background: rgba(255,255,255,0.15);
+            border-radius: 50rem;
+            padding: 0.35rem 0.9rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        /* Empty / error states */
+        .empty-state-box {
+            background: #FFFFFF;
+            border: 1px solid var(--agri-border);
+            border-radius: 14px;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+        .empty-state-box i {
+            font-size: 3rem;
+            opacity: 0.25;
+            color: var(--agri-primary);
+        }
+    </style>
+</head>
+<body>
+    <!-- Standard Navbar Container -->
+    <div id="navbar-container"></div>
+
+    <main class="container py-4">
+
+        <!-- ── Hero Header ─────────────────────────────────────────────── -->
+        <section class="welcome-hero mb-4">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <span class="badge bg-success-subtle text-success px-3 py-1 rounded-pill mb-2">APMC / Mandi Reference</span>
+                    <h1 class="welcome-title mb-1">
+                        <i class="bi bi-graph-up text-success"></i> Market &amp; MSP Prices
+                    </h1>
+                    <p class="welcome-desc mb-0">
+                        Crop commodity benchmark rates and Minimum Support Prices from APMC mandi records.
+                        Use these as reference when pricing your harvest.
+                    </p>
+                </div>
+                <div class="text-end d-none d-md-block">
+                    <a href="farmer-dashboard.html" class="btn btn-outline-secondary btn-sm">
+                        <i class="bi bi-arrow-left"></i> Farmer Dashboard
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- Alert container -->
+        <div id="alertContainer"></div>
+
+        <!-- ── Summary Hero (populated after load) ─────────────────────── -->
+        <div id="heroBar" class="price-hero mb-4 d-none">
+            <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                <div>
+                    <h4 class="fw-bold text-white mb-1">
+                        <i class="bi bi-bar-chart-fill me-2"></i>
+                        <span id="heroTitle">Market Price Database</span>
+                    </h4>
+                    <p class="text-white-50 small mb-2" id="heroSubtitle">Loaded from AgriConnect backend</p>
+                    <div class="d-flex flex-wrap gap-2">
+                        <span class="stat-pill" id="heroCropCount"><i class="bi bi-flower2"></i> -- crops</span>
+                        <span class="stat-pill" id="heroMarketCount"><i class="bi bi-shop"></i> -- markets</span>
+                        <span class="stat-pill" id="heroRecordCount"><i class="bi bi-list-ul"></i> -- records</span>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <i class="bi bi-currency-rupee text-warning" style="font-size:3.2rem;opacity:0.7;"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Filters ──────────────────────────────────────────────────── -->
+        <div class="filter-bar mb-4">
+            <div class="row g-3 align-items-end">
+                <!-- Backend search: cropName / market / category -->
+                <div class="col-lg-4">
+                    <label class="form-label fw-semibold small text-dark mb-1">
+                        <i class="bi bi-search text-success"></i> Search Crop / Market / Category
+                    </label>
+                    <div class="input-group">
+                        <input type="text" id="searchInput" class="form-control"
+                            placeholder="e.g. Rice, Ludhiana, Oilseeds…"
+                            autocomplete="off">
+                        <button class="btn btn-agri-primary" id="searchBtn" type="button">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                    <div class="form-text text-muted small">Searches crop, market, and category via backend.</div>
+                </div>
+
+                <!-- Client-side: State filter (populated from data) -->
+                <div class="col-sm-6 col-lg-3">
+                    <label class="form-label fw-semibold small text-dark mb-1">
+                        <i class="bi bi-geo-alt text-success"></i> State
+                    </label>
+                    <select id="stateFilter" class="form-select">
+                        <option value="">All States</option>
+                    </select>
+                </div>
+
+                <!-- Client-side: Price type filter -->
+                <div class="col-sm-6 col-lg-3">
+                    <label class="form-label fw-semibold small text-dark mb-1">
+                        <i class="bi bi-tag text-success"></i> Price Type
+                    </label>
+                    <select id="priceTypeFilter" class="form-select">
+                        <option value="">All Price Types</option>
+                    </select>
+                </div>
+
+                <!-- Reset -->
+                <div class="col-lg-2 d-flex align-items-end">
+                    <button class="btn btn-outline-secondary w-100" id="resetBtn" type="button">
+                        <i class="bi bi-x-circle"></i> Reset
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── Content Area ─────────────────────────────────────────────── -->
+        <div id="contentArea">
+            <!-- Loading state on page open -->
+            <div class="text-center py-5">
+                <div class="spinner-border text-success mb-3" style="width:3rem;height:3rem;" role="status">
+                    <span class="visually-hidden">Loading…</span>
+                </div>
+                <h5 class="fw-bold text-dark mb-1">Fetching Market Price Records…</h5>
+                <p class="text-muted small mb-0">Connecting to APMC mandi database…</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Standard Footer -->
+    <footer class="agri-footer mt-auto py-3">
+        <div class="container text-center">
+            <p class="mb-0 small text-white-50">AgriConnect • Unified Farmer Platform • Market &amp; MSP Reference Module</p>
+        </div>
+    </footer>
+
+    <!-- Bootstrap 5 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- AgriConnect Auth Guard -->
+    <script src="auth.js"></script>
+    <script src="farmer-api.js"></script>
+
+    <script>
+        // ── State ──────────────────────────────────────────────────────────────
+        let allRecords = [];      // full dataset returned from last backend call
+        let filteredRecords = []; // after client-side filter applied
+
+        // ── Auth Guard ─────────────────────────────────────────────────────────
+        document.addEventListener('DOMContentLoaded', () => {
+            const user = AgriAuth.requireAuth('FARMER');
+            if (!user) return;
+            AgriAuth.renderNavbar('navbar-container', 'market-prices');
+
+            // Wire up controls
+            document.getElementById('searchBtn').addEventListener('click', triggerBackendSearch);
+            document.getElementById('searchInput').addEventListener('keydown', e => {
+                if (e.key === 'Enter') triggerBackendSearch();
+            });
+            document.getElementById('stateFilter').addEventListener('change', applyClientFilters);
+            document.getElementById('priceTypeFilter').addEventListener('change', applyClientFilters);
+            document.getElementById('resetBtn').addEventListener('click', resetAll);
+
+            // Initial load — all records
+            fetchPrices('');
+        });
+
+        // ── Backend fetch (handles crop/query search param) ────────────────────
+        async function fetchPrices(searchQuery) {
+            showLoading();
+            try {
+                const qs = searchQuery && searchQuery.trim()
+                    ? `?crop=${encodeURIComponent(searchQuery.trim())}`
+                    : '';
+                const res = await fetch(`/api/market-prices${qs}`, {
+                    method: 'GET',
+                    credentials: 'include'
+                });
+
+                if (!res.ok) {
+                    let msg = `Server error ${res.status}`;
+                    try { const err = await res.json(); msg = err.error || msg; } catch (_) {}
+                    renderError(msg);
+                    return;
+                }
+
+                allRecords = await res.json();
+                populateClientFilters();
+                applyClientFilters();
+                updateHeroBar(searchQuery);
+            } catch (err) {
+                console.error('Market price fetch error:', err);
+                renderError('Failed to connect to the market price service. Please check your connection and try again.');
+            }
+        }
+
+        // ── Trigger backend search from search box ─────────────────────────────
+        function triggerBackendSearch() {
+            const q = document.getElementById('searchInput').value.trim();
+            // Reset client-side filters when doing a fresh backend search
+            document.getElementById('stateFilter').value = '';
+            document.getElementById('priceTypeFilter').value = '';
+            fetchPrices(q);
+        }
+
+        // ── Populate client-side filter dropdowns from returned data ───────────
+        function populateClientFilters() {
+            const states = [...new Set(allRecords.map(r => r.state).filter(Boolean))].sort();
+            const types  = [...new Set(allRecords.map(r => r.priceType).filter(Boolean))].sort();
+
+            const stateEl = document.getElementById('stateFilter');
+            const curState = stateEl.value;
+            stateEl.innerHTML = '<option value="">All States</option>' +
+                states.map(s => `<option value="${escapeAttr(s)}" ${s === curState ? 'selected' : ''}>${escapeHtml(s)}</option>`).join('');
+
+            const typeEl = document.getElementById('priceTypeFilter');
+            const curType = typeEl.value;
+            typeEl.innerHTML = '<option value="">All Price Types</option>' +
+                types.map(t => `<option value="${escapeAttr(t)}" ${t === curType ? 'selected' : ''}>${escapeHtml(t)}</option>`).join('');
+        }
+
+        // ── Apply client-side state + priceType filters ────────────────────────
+        function applyClientFilters() {
+            const stateVal = document.getElementById('stateFilter').value;
+            const typeVal  = document.getElementById('priceTypeFilter').value;
+
+            filteredRecords = allRecords.filter(r => {
+                if (stateVal && r.state !== stateVal) return false;
+                if (typeVal  && r.priceType !== typeVal) return false;
+                return true;
+            });
+
+            renderTable();
+        }
+
+        // ── Hero bar update ────────────────────────────────────────────────────
+        function updateHeroBar(query) {
+            const bar = document.getElementById('heroBar');
+            bar.classList.remove('d-none');
+            document.getElementById('heroTitle').textContent =
+                query ? `Results for "${query}"` : 'All Market Prices';
+            document.getElementById('heroSubtitle').textContent =
+                'Live data from AgriConnect backend — updated automatically';
+
+            const crops   = new Set(allRecords.map(r => r.cropName).filter(Boolean));
+            const markets = new Set(allRecords.map(r => r.market).filter(Boolean));
+            document.getElementById('heroCropCount').innerHTML   = `<i class="bi bi-flower2"></i> ${crops.size} crop${crops.size !== 1 ? 's' : ''}`;
+            document.getElementById('heroMarketCount').innerHTML = `<i class="bi bi-shop"></i> ${markets.size} market${markets.size !== 1 ? 's' : ''}`;
+            document.getElementById('heroRecordCount').innerHTML = `<i class="bi bi-list-ul"></i> ${allRecords.length} record${allRecords.length !== 1 ? 's' : ''}`;
+        }
+
+        // ── Render the price table ─────────────────────────────────────────────
+        function renderTable() {
+            const area = document.getElementById('contentArea');
+
+            if (filteredRecords.length === 0) {
+                area.innerHTML = `
+                    <div class="empty-state-box">
+                        <i class="bi bi-graph-up mb-3 d-block"></i>
+                        <h5 class="fw-bold text-dark mb-1">No Records Found</h5>
+                        <p class="text-muted small mb-3">
+                            ${allRecords.length === 0
+                                ? 'No market price data is available in the database yet.'
+                                : 'No records match the current filters. Try a different state or price type.'}
+                        </p>
+                        <button class="btn btn-outline-success btn-sm fw-semibold px-4" onclick="resetAll()">
+                            <i class="bi bi-arrow-clockwise"></i> Reset Filters
+                        </button>
+                    </div>`;
+                return;
+            }
+
+            // Check if any record is demo — show top banner once
+            const hasDemo = filteredRecords.some(r => r.isDemo === true);
+
+            area.innerHTML = `
+                ${hasDemo ? `
+                <div class="alert alert-warning d-flex align-items-center gap-2 py-2 px-3 mb-3 rounded-3 small" role="alert">
+                    <i class="bi bi-exclamation-triangle-fill text-warning flex-shrink-0"></i>
+                    <span><strong>Sample / Demo Dataset:</strong> Prices marked <span class="demo-badge">DEMO</span> are reference figures for illustration only — not live government MSP data.</span>
+                </div>` : ''}
+
+                <div class="agri-card">
+                    <div class="d-flex justify-content-between align-items-center px-3 pt-3 pb-2 flex-wrap gap-2">
+                        <span class="fw-semibold text-dark small">
+                            Showing <strong>${filteredRecords.length}</strong> of <strong>${allRecords.length}</strong> records
+                        </span>
+                        <button class="btn btn-outline-success btn-sm fw-semibold px-3" onclick="fetchPrices(document.getElementById('searchInput').value)">
+                            <i class="bi bi-arrow-clockwise"></i> Refresh
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0" id="priceTable">
+                            <thead>
+                                <tr>
+                                    <th>Crop Commodity</th>
+                                    <th>Category</th>
+                                    <th>APMC Market</th>
+                                    <th>State</th>
+                                    <th>Price</th>
+                                    <th>Price Type</th>
+                                    <th>Date</th>
+                                    <th>Source</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${filteredRecords.map(p => `
+                                    <tr>
+                                        <td>
+                                            <div class="fw-bold text-dark">${escapeHtml(p.cropName || '--')}</div>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-light text-dark border small">${escapeHtml(p.category || '--')}</span>
+                                        </td>
+                                        <td class="text-dark">${escapeHtml(p.market || '--')}</td>
+                                        <td class="text-muted small">${escapeHtml(p.state || '--')}</td>
+                                        <td>
+                                            <span class="price-value">
+                                                ₹${escapeHtml(p.price != null ? String(p.price) : '--')}
+                                            </span>
+                                            <span class="text-muted small">/ ${escapeHtml(p.unit || 'quintal')}</span>
+                                        </td>
+                                        <td>
+                                            ${p.priceType
+                                                ? `<span class="badge bg-success-subtle text-success small">${escapeHtml(p.priceType)}</span>`
+                                                : '<span class="text-muted small">--</span>'}
+                                        </td>
+                                        <td class="text-muted small">${escapeHtml(p.date || '--')}</td>
+                                        <td>
+                                            ${p.isDemo === true
+                                                ? `<span class="demo-badge">DEMO</span>`
+                                                : `<span class="badge bg-success text-white small">Live</span>`}
+                                        </td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                ${hasDemo && filteredRecords[0] && filteredRecords[0].disclaimer ? `
+                <div class="mt-3 px-1 text-muted small">
+                    <i class="bi bi-info-circle me-1"></i>
+                    ${escapeHtml(filteredRecords[0].disclaimer)}
+                </div>` : ''}
+            `;
+        }
+
+        // ── Loading state ──────────────────────────────────────────────────────
+        function showLoading() {
+            document.getElementById('contentArea').innerHTML = `
+                <div class="text-center py-5">
+                    <div class="spinner-border text-success mb-3" style="width:3rem;height:3rem;" role="status">
+                        <span class="visually-hidden">Loading…</span>
+                    </div>
+                    <h5 class="fw-bold text-dark mb-1">Fetching Market Prices…</h5>
+                    <p class="text-muted small mb-0">Querying the APMC mandi database…</p>
+                </div>`;
+        }
+
+        // ── Error state ────────────────────────────────────────────────────────
+        function renderError(message) {
+            document.getElementById('contentArea').innerHTML = `
+                <div class="alert alert-danger border-2 p-4 rounded-4">
+                    <div class="d-flex align-items-center gap-2 mb-2">
+                        <i class="bi bi-exclamation-triangle-fill fs-3 text-danger"></i>
+                        <h5 class="fw-bold text-danger mb-0">Unable to Load Market Prices</h5>
+                    </div>
+                    <p class="text-dark small mb-3">${escapeHtml(message)}</p>
+                    <button class="btn btn-outline-danger btn-sm fw-bold px-4"
+                        onclick="fetchPrices(document.getElementById('searchInput').value)">
+                        <i class="bi bi-arrow-clockwise"></i> Retry
+                    </button>
+                </div>`;
+        }
+
+        // ── Reset all filters and reload ───────────────────────────────────────
+        function resetAll() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('stateFilter').value = '';
+            document.getElementById('priceTypeFilter').value = '';
+            fetchPrices('');
+        }
+
+        // ── Helpers ────────────────────────────────────────────────────────────
+        function escapeHtml(str) {
+            if (str == null) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#039;');
+        }
+
+        function escapeAttr(str) {
+            if (str == null) return '';
+            return String(str).replace(/"/g, '&quot;');
+        }
+    </script>
+</body>
+</html>

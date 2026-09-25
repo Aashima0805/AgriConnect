@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Cart - AgriConnect</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <!-- AgriConnect Design System -->
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .cart-img {
+            width: 56px;
+            height: 56px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid var(--agri-border);
+            flex-shrink: 0;
+        }
+        .qty-stepper {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        .qty-stepper .btn {
+            width: 30px;
+            height: 30px;
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 6px;
+            font-size: 1rem;
+        }
+        .qty-display {
+            min-width: 38px;
+            text-align: center;
+            font-weight: 700;
+            font-size: 0.95rem;
+        }
+        .cart-table th {
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: var(--agri-muted);
+            padding: 0.85rem 1rem;
+            background-color: #F9FAFB;
+        }
+        .cart-table td {
+            padding: 1rem;
+            vertical-align: middle;
+        }
+        .cart-table tbody tr:hover {
+            background-color: #FAFFF9;
+        }
+        .summary-card {
+            position: sticky;
+            top: 80px;
+        }
+        .farmer-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            background-color: #F0FDF4;
+            border: 1px solid #BBF7D0;
+            border-radius: 20px;
+            padding: 0.15rem 0.6rem;
+            font-size: 0.75rem;
+            color: #166534;
+            font-weight: 500;
+            margin-top: 0.25rem;
+        }
+        .cart-total-row {
+            font-size: 1.1rem;
+            font-weight: 800;
+            color: var(--agri-dark);
+        }
+        #loadingOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(255,255,255,0.85);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            gap: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================
+         NAVBAR
+    ============================= -->
+    <nav class="navbar navbar-expand-lg agri-navbar sticky-top">
+        <div class="container">
+            <a class="navbar-brand agri-brand" href="customer-dashboard.html">
+                <i class="bi bi-flower1"></i> AgriConnect
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                    data-bs-target="#cartNav" aria-controls="cartNav"
+                    aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="cartNav">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item">
+                        <a class="nav-link agri-nav-link" href="customer-dashboard.html">
+                            <i class="bi bi-grid"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link agri-nav-link" href="customer-marketplace.html">
+                            <i class="bi bi-shop"></i> Marketplace
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link agri-nav-link" href="customer-nearby.html">
+                            <i class="bi bi-geo-alt"></i> Nearby Farmers
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link agri-nav-link active" href="customer-cart.html">
+                            <i class="bi bi-cart3"></i> Cart
+                            <span id="cartNavBadge" class="badge bg-danger rounded-pill ms-1" style="display:none;">0</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link agri-nav-link" href="customer-orders.html">
+                            <i class="bi bi-receipt-cutoff"></i> Orders
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link agri-nav-link" href="customer-reviews.html">
+                            <i class="bi bi-star"></i> Reviews
+                        </a>
+                    </li>
+                </ul>
+                <div id="navUserArea" class="d-flex align-items-center gap-3 flex-wrap"></div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- ============================
+         LOADING OVERLAY
+    ============================= -->
+    <div id="loadingOverlay">
+        <div class="spinner-border text-success" style="width:2.5rem;height:2.5rem;" role="status">
+            <span class="visually-hidden">Loading…</span>
+        </div>
+        <span class="text-muted fw-semibold small">Loading cart…</span>
+    </div>
+
+    <!-- ============================
+         ALERT CONTAINER
+    ============================= -->
+    <div id="alertContainer" class="container mt-3" style="min-height:0;"></div>
+
+    <!-- ============================
+         MAIN CONTENT
+    ============================= -->
+    <main class="container py-4">
+
+        <!-- Page Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb mb-1 small">
+                        <li class="breadcrumb-item">
+                            <a href="customer-dashboard.html" class="text-success text-decoration-none">Dashboard</a>
+                        </li>
+                        <li class="breadcrumb-item active">Shopping Cart</li>
+                    </ol>
+                </nav>
+                <h2 class="fw-bold text-dark m-0">
+                    <i class="bi bi-cart3" style="color:#E65100;"></i> Shopping Cart
+                </h2>
+                <p class="text-muted small m-0">Review your produce selections before checkout</p>
+            </div>
+            <a href="customer-marketplace.html" class="btn btn-agri-secondary btn-sm">
+                <i class="bi bi-shop"></i> Continue Shopping
+            </a>
+        </div>
+
+        <!-- ============================
+             EMPTY CART STATE
+        ============================= -->
+        <div id="emptyCartState" style="display:none;">
+            <div class="agri-card p-5 text-center" style="border: 2px dashed var(--agri-border);">
+                <div class="mb-4" style="font-size:4rem;">🛒</div>
+                <h3 class="fw-bold text-dark mb-2">Your Cart is Empty</h3>
+                <p class="text-muted mb-4" style="max-width:400px; margin:0 auto;">
+                    Browse our marketplace and add farm-fresh produce directly from local farmers.
+                </p>
+                <a href="customer-marketplace.html" class="btn btn-agri-primary px-5 py-2">
+                    <i class="bi bi-shop"></i> Browse Marketplace
+                </a>
+            </div>
+        </div>
+
+        <!-- ============================
+             FILLED CART STATE
+        ============================= -->
+        <div id="filledCartState" style="display:none;">
+            <div class="row g-4">
+
+                <!-- Cart Items Table (left column) -->
+                <div class="col-lg-8">
+                    <div class="agri-card">
+                        <div class="agri-card-header">
+                            <h5 class="agri-card-title">
+                                <i class="bi bi-list-check text-success"></i> Cart Items
+                            </h5>
+                            <span id="itemCountBadge" class="badge bg-success-subtle text-success px-3 py-1 rounded-pill fw-semibold">
+                                0 items
+                            </span>
+                        </div>
+                        <div class="table-responsive">
+                            <table class="table cart-table m-0">
+                                <thead>
+                                    <tr>
+                                        <th style="min-width:200px;">Produce</th>
+                                        <th class="text-center">Unit Price</th>
+                                        <th class="text-center" style="min-width:140px;">Quantity</th>
+                                        <th class="text-center">Subtotal</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="cartRows">
+                                    <!-- Rows inserted by JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Order Summary (right column) -->
+                <div class="col-lg-4">
+                    <div class="agri-card p-4 summary-card">
+                        <h5 class="fw-bold text-dark mb-3">
+                            <i class="bi bi-receipt text-success"></i> Order Summary
+                        </h5>
+
+                        <div class="d-flex justify-content-between mb-2 text-muted">
+                            <span>Produce Subtotal</span>
+                            <span id="orderSubtotal" class="fw-semibold text-dark">₹0.00</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-2 text-muted">
+                            <span>Farm Dispatch</span>
+                            <span class="text-success fw-semibold">
+                                <i class="bi bi-truck"></i> Free
+                            </span>
+                        </div>
+                        <hr class="my-3">
+                        <div class="d-flex justify-content-between mb-4 cart-total-row">
+                            <span>Total Amount</span>
+                            <span id="orderTotal" class="text-success">₹0.00</span>
+                        </div>
+
+                        <!-- Clear Cart -->
+                        <button class="btn btn-outline-danger w-100 mb-2 fw-semibold"
+                                onclick="clearCartWithConfirm()">
+                            <i class="bi bi-trash3"></i> Clear Cart
+                        </button>
+
+                        <!-- Checkout — Phase 4 live -->
+                        <a href="customer-checkout.html"
+                           class="btn btn-success w-100 py-2 fw-bold">
+                            <i class="bi bi-shield-lock-fill"></i> Proceed to Checkout
+                        </a>
+                        <p class="text-muted text-center small mt-2 mb-0">
+                            <i class="bi bi-info-circle"></i> Mock / demo payment only
+                        </p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ============================
+         FOOTER
+    ============================= -->
+    <footer class="agri-footer mt-auto">
+        <div class="container text-center">
+            <p class="mb-0 small text-white-50">
+                AgriConnect &bull; Customer Cart &bull; Phase 4
+            </p>
+        </div>
+    </footer>
+
+    <!-- ============================
+         SCRIPTS
+    ============================= -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="auth.js"></script>
+    <script src="farmer-api.js"></script>
+    <script>
+    /* =====================================================================
+       Customer Cart Page — Phase 4
+       Uses session-cookie auth (no Bearer / JWT).
+       Backend: http://localhost:8081 (via FarmerAPI.baseUrl)
+    ===================================================================== */
+
+    let cartCustomerId = null; // set after auth check
+    const _cartItemNames = {};  // itemId → productName (safe for data-attr use)
+
+    /* ------------------------------------------------------------------
+       Boot: auth guard → render navbar → load cart
+    ------------------------------------------------------------------ */
+    document.addEventListener('DOMContentLoaded', async () => {
+        const user = AgriAuth.requireAuth('CUSTOMER');
+        if (!user) return;
+
+        cartCustomerId = user.id;
+        renderNavUser(user);
+        await loadCart();
+    });
+
+    /* ------------------------------------------------------------------
+       Render user badge + logout button in navbar
+    ------------------------------------------------------------------ */
+    function renderNavUser(user) {
+        const area = document.getElementById('navUserArea');
+        if (!area) return;
+        area.innerHTML = `
+            <div class="agri-user-badge">
+                <i class="bi bi-person-circle text-success"></i>
+                <span>${AgriAuth.escapeHtml(user.name)}</span>
+                <span class="agri-role-pill role-customer">Customer</span>
+            </div>
+            <button type="button" class="btn btn-outline-danger btn-sm" onclick="AgriAuth.logout()">
+                <i class="bi bi-box-arrow-right"></i> Logout
+            </button>`;
+    }
+
+    /* ------------------------------------------------------------------
+       Load cart from backend: GET /api/cart/{customerId}
+    ------------------------------------------------------------------ */
+    async function loadCart() {
+        showLoading(true);
+        try {
+            const resp = await FarmerAPI.get(`/api/cart/${cartCustomerId}`);
+            if (!resp.ok) {
+                showPageAlert('danger', resp.data?.error || 'Failed to load cart.');
+                return;
+            }
+            await renderCart(resp.data);
+        } catch (e) {
+            console.error('[Cart] loadCart error:', e);
+            showPageAlert('danger', 'Unable to reach cart service. Please try again.');
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    /* ------------------------------------------------------------------
+       Render cart: empty state or filled table
+    ------------------------------------------------------------------ */
+    async function renderCart(data) {
+        const items = data.items || [];
+
+        // Toggle states
+        document.getElementById('emptyCartState').style.display  = items.length === 0 ? '' : 'none';
+        document.getElementById('filledCartState').style.display = items.length > 0  ? '' : 'none';
+
+        // Update nav badge
+        updateCartNavBadge(typeof data.totalItems === 'number' ? data.totalItems : items.length);
+
+        if (items.length === 0) return;
+
+        // Badge count
+        document.getElementById('itemCountBadge').textContent =
+            `${items.length} item${items.length !== 1 ? 's' : ''}`;
+
+        // Fetch farmer info for each product in parallel (best-effort)
+        const productDetails = {};
+        await Promise.all(items.map(async item => {
+            try {
+                const r = await FarmerAPI.get(`/api/products/${item.productId}`);
+                if (r.ok && r.data) productDetails[item.productId] = r.data;
+            } catch (_) { /* farmer info optional */ }
+        }));
+
+        // Build table rows
+        const tbody = document.getElementById('cartRows');
+        tbody.innerHTML = '';
+
+        items.forEach(item => {
+            const p          = productDetails[item.productId] || {};
+            const imgUrl     = item.productImageUrl || p.imageUrl || '';
+            const farmerName = p.farmerName  || null;
+            const farmerAddr = p.farmerAddress || null;
+            const unitPrice  = parseFloat(item.unitPrice)  || 0;
+            const qty        = Number(item.quantity)        || 1;
+            const subtotal   = parseFloat(item.itemTotal)   || (unitPrice * qty);
+            const unit       = item.unit || p.unit || 'unit';
+            const stock      = item.stockAvailable != null ? Number(item.stockAvailable) : null;
+
+            // Farmer chip (only if data available)
+            const farmerChip = farmerName
+                ? `<span class="farmer-chip">
+                       <i class="bi bi-person-badge-fill"></i>
+                       ${AgriAuth.escapeHtml(farmerName)}
+                       ${farmerAddr ? '&bull; ' + AgriAuth.escapeHtml(farmerAddr.split(',')[0].trim()) : ''}
+                   </span>`
+                : '';
+
+            // Category badge
+            const catBadge = item.productCategory
+                ? `<span class="badge bg-light text-secondary border" style="font-size:.7rem;">${AgriAuth.escapeHtml(item.productCategory)}</span>`
+                : '';
+
+            // Stock label
+            const stockLabel = stock != null
+                ? `<small class="text-muted d-block mt-1" style="font-size:.73rem;">Stock: ${stock} ${unit}</small>`
+                : '';
+
+            // Image with fallback emoji
+            const imgEl = imgUrl
+                ? `<img src="${imgUrl}" alt="${AgriAuth.escapeHtml(item.productName || '')}"
+                        class="cart-img"
+                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                   <div class="cart-img d-none align-items-center justify-content-center fs-3 bg-light text-success">🌾</div>`
+                : `<div class="cart-img d-flex align-items-center justify-content-center fs-3 bg-light text-success">🌾</div>`;
+
+            const tr = document.createElement('tr');
+            tr.id = `row-${item.id}`;
+            _cartItemNames[item.id] = item.productName || 'this item'; // safe lookup
+            tr.innerHTML = `
+                <td>
+                    <div class="d-flex align-items-center gap-3">
+                        <div style="display:contents;">${imgEl}</div>
+                        <div>
+                            <div class="fw-semibold text-dark lh-sm">
+                                ${AgriAuth.escapeHtml(item.productName || 'Unknown Product')}
+                            </div>
+                            <div class="mt-1">${catBadge}</div>
+                            <div>${farmerChip}</div>
+                        </div>
+                    </div>
+                </td>
+                <td class="text-center text-nowrap">
+                    <span class="fw-bold text-success">₹${unitPrice.toFixed(2)}</span>
+                    <small class="text-muted">/${unit}</small>
+                </td>
+                <td class="text-center">
+                    <div class="qty-stepper">
+                        <button class="btn btn-outline-secondary"
+                                id="dec-${item.id}"
+                                onclick="changeQuantity(${item.id}, ${qty}, -1, ${stock ?? 9999})"
+                                ${qty <= 1 ? 'disabled' : ''}
+                                title="Decrease quantity">
+                            <i class="bi bi-dash"></i>
+                        </button>
+                        <span class="qty-display" id="qty-${item.id}">${qty}</span>
+                        <button class="btn btn-outline-secondary"
+                                id="inc-${item.id}"
+                                onclick="changeQuantity(${item.id}, ${qty}, 1, ${stock ?? 9999})"
+                                ${stock != null && qty >= stock ? 'disabled' : ''}
+                                title="Increase quantity">
+                            <i class="bi bi-plus"></i>
+                        </button>
+                    </div>
+                    ${stockLabel}
+                </td>
+                <td class="text-center text-nowrap">
+                    <span class="fw-bold text-dark" id="subtotal-${item.id}">₹${subtotal.toFixed(2)}</span>
+                </td>
+                <td class="text-center">
+                    <button class="btn btn-sm btn-outline-danger"
+                            data-item-id="${item.id}"
+                            onclick="removeItemById(this)"
+                            title="Remove from cart">
+                        <i class="bi bi-trash3"></i>
+                    </button>
+                </td>`;
+            tbody.appendChild(tr);
+        });
+
+        // Update order summary totals
+        const total = parseFloat(data.cartTotal) || 0;
+        document.getElementById('orderSubtotal').textContent = `₹${total.toFixed(2)}`;
+        document.getElementById('orderTotal').textContent    = `₹${total.toFixed(2)}`;
+    }
+
+    /* ------------------------------------------------------------------
+       Increase / Decrease quantity via PUT /api/cart/{customerId}/items/{itemId}
+    ------------------------------------------------------------------ */
+    async function changeQuantity(itemId, currentQty, delta, stockAvailable) {
+        const newQty = currentQty + delta;
+        if (newQty < 1) return;
+        if (stockAvailable != null && newQty > stockAvailable) {
+            showPageAlert('warning', `Only ${stockAvailable} units available in stock.`);
+            return;
+        }
+
+        // Optimistic UI: show spinner in qty cell
+        const qtyEl = document.getElementById(`qty-${itemId}`);
+        if (qtyEl) qtyEl.innerHTML = '<span class="spinner-border spinner-border-sm text-muted"></span>';
+
+        // Disable steppers while updating
+        setQtyBtnsDisabled(itemId, true);
+
+        try {
+            const resp = await FarmerAPI.put(
+                `/api/cart/${cartCustomerId}/items/${itemId}`,
+                { quantity: newQty }
+            );
+            if (resp.ok) {
+                await loadCart(); // Full reload → correct totals + badge
+            } else {
+                showPageAlert('danger', resp.data?.error || 'Failed to update quantity.');
+                await loadCart(); // Revert display
+            }
+        } catch (e) {
+            console.error('[Cart] changeQuantity error:', e);
+            showPageAlert('danger', 'Error updating quantity. Please try again.');
+            await loadCart();
+        }
+    }
+
+    /* ------------------------------------------------------------------
+       Remove individual item via DELETE /api/cart/{customerId}/items/{itemId}
+    ------------------------------------------------------------------ */
+    async function removeItem(itemId, productName) {
+        // Animate row out before API call for snappy UX
+        const row = document.getElementById(`row-${itemId}`);
+        if (row) {
+            row.style.transition = 'opacity 0.25s ease';
+            row.style.opacity = '0.3';
+        }
+
+        showLoading(true);
+        try {
+            const resp = await FarmerAPI.del(
+                `/api/cart/${cartCustomerId}/items/${itemId}`
+            );
+            if (resp.ok) {
+                showPageAlert('success', `"${productName}" removed from cart.`);
+                await loadCart();
+            } else {
+                showPageAlert('danger', 'Failed to remove item. Please try again.');
+                if (row) row.style.opacity = '1'; // Revert opacity
+            }
+        } catch (e) {
+            console.error('[Cart] removeItem error:', e);
+            showPageAlert('danger', 'Error removing item. Please try again.');
+            if (row) row.style.opacity = '1';
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    /* ------------------------------------------------------------------
+       Thin wrapper for data-attribute-based remove buttons
+    ------------------------------------------------------------------ */
+    function removeItemById(btn) {
+        const itemId = Number(btn.dataset.itemId);
+        const name   = _cartItemNames[itemId] || 'this item';
+        removeItem(itemId, name);
+    }
+
+    /* ------------------------------------------------------------------
+       Clear cart with confirmation via DELETE /api/cart/{customerId}
+    ------------------------------------------------------------------ */
+    async function clearCartWithConfirm() {
+        if (!confirm('Clear your entire cart? All items will be removed and this cannot be undone.')) return;
+
+        showLoading(true);
+        try {
+            const resp = await FarmerAPI.del(`/api/cart/${cartCustomerId}`);
+            if (resp.ok) {
+                showPageAlert('success', 'Cart cleared successfully.');
+                await loadCart();
+            } else {
+                showPageAlert('danger', 'Failed to clear cart. Please try again.');
+            }
+        } catch (e) {
+            console.error('[Cart] clearCart error:', e);
+            showPageAlert('danger', 'Error clearing cart. Please try again.');
+        } finally {
+            showLoading(false);
+        }
+    }
+
+    /* ------------------------------------------------------------------
+       Update the cart item-count badge in the navbar
+    ------------------------------------------------------------------ */
+    function updateCartNavBadge(count) {
+        const badge = document.getElementById('cartNavBadge');
+        if (!badge) return;
+        if (count > 0) {
+            badge.textContent   = count;
+            badge.style.display = '';
+        } else {
+            badge.style.display = 'none';
+        }
+    }
+
+    /* ------------------------------------------------------------------
+       Utility: show / hide loading overlay
+    ------------------------------------------------------------------ */
+    function showLoading(show) {
+        const el = document.getElementById('loadingOverlay');
+        if (el) el.style.display = show ? 'flex' : 'none';
+    }
+
+    /* ------------------------------------------------------------------
+       Utility: disable/enable qty +/- buttons during update
+    ------------------------------------------------------------------ */
+    function setQtyBtnsDisabled(itemId, disabled) {
+        ['dec', 'inc'].forEach(prefix => {
+            const btn = document.getElementById(`${prefix}-${itemId}`);
+            if (btn) btn.disabled = disabled;
+        });
+    }
+
+    /* ------------------------------------------------------------------
+       Utility: show page alert (auto-dismisses after 4 s)
+    ------------------------------------------------------------------ */
+    function showPageAlert(type, msg) {
+        const container = document.getElementById('alertContainer');
+        if (!container) return;
+
+        // Map type to icon
+        const icons = { success: 'check-circle-fill', danger: 'exclamation-triangle-fill', warning: 'exclamation-circle-fill' };
+        const icon  = icons[type] || 'info-circle-fill';
+
+        container.innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show d-flex align-items-center gap-2" role="alert">
+                <i class="bi bi-${icon}"></i>
+                <span>${msg}</span>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>`;
+
+        // Auto-dismiss
+        setTimeout(() => {
+            const alertEl = container.querySelector('.alert');
+            if (alertEl) {
+                try {
+                    bootstrap.Alert.getOrCreateInstance(alertEl).close();
+                } catch (_) {
+                    alertEl.remove();
+                }
+            }
+        }, 4000);
+    }
+    </script>
+</body>
+</html>
