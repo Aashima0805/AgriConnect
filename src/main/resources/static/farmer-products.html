@@ -158,12 +158,13 @@
         async function saveProduct() {
             const id = document.getElementById('productId').value;
             const payload = {
-                name: document.getElementById('productName').value,
-                category: document.getElementById('productCategory').value,
-                description: document.getElementById('productDescription').value,
-                price: parseFloat(document.getElementById('productPrice').value),
-                quantity: parseFloat(document.getElementById('productQuantity').value)
-            };
+    farmerId: currentUser.id,
+    name: document.getElementById('productName').value,
+    category: document.getElementById('productCategory').value,
+    description: document.getElementById('productDescription').value,
+    price: parseFloat(document.getElementById('productPrice').value),
+    quantity: parseFloat(document.getElementById('productQuantity').value)
+};
             FarmerAPI.showLoading(true);
             try {
                 let resp;
