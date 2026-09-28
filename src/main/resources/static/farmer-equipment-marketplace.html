@@ -85,6 +85,34 @@
         border-radius: 18px;
         border: 1px solid #e4ece5;
     }
+    #equipmentGrid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+    width: 100%;
+}
+
+.equipment-card {
+    width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+}
+
+.equipment-image {
+    width: 100%;
+}
+
+@media (max-width: 992px) {
+    #equipmentGrid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 576px) {
+    #equipmentGrid {
+        grid-template-columns: 1fr;
+    }
+}
 </style>
 
 
@@ -127,7 +155,7 @@
     </p>
 </div>
 
-<div id="equipmentGrid" class="row g-4"></div>
+<div id="equipmentGrid"></div>
 
 
 </div>
@@ -224,7 +252,7 @@ function renderEquipmentCard(equipment) {
         'Location not specified';
 
     return `
-        <div class="col-md-6 col-lg-4">
+        <div>
 
             <div class="equipment-card">
 
