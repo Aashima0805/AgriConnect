@@ -185,7 +185,7 @@ async function loadAvailableEquipment() {
 
         const otherFarmersEquipment =
             equipmentList.filter(equipment =>
-                equipment.ownerId !== currentUser.id &&
+                equipment.ownerld !== currentUser.id &&
                 equipment.available === true
             );
 
