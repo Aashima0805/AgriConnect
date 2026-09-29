@@ -67,6 +67,7 @@ def predict():
 
     try:
         image = Image.open(file.stream).convert("RGB")
+        image.thumbnail((1280, 1280))
     except Exception as e:
         return jsonify({
             "status": "error",
@@ -75,7 +76,12 @@ def predict():
 
     # Run genuine YOLO inference
     try:
-        results = model.predict(source=image, conf=0.25, verbose=False)
+        results = model.predict(
+    source=image,
+    conf=0.25,
+    imgsz=320,
+    verbose=False
+)
     except Exception as e:
         return jsonify({
             "status": "error",
